@@ -1,0 +1,4 @@
+parallelism,total_throughput,scale_factor,gpu_distribution,execution_time
+1,0.6,1.00,GPU0:50,127
+2,1.35,2.25,GPU0:20;GPU0:20,67
+4,1.83,3.05,GPU0:10;GPU0:10;GPU0:10;GPU0:10,63

@@ -1,0 +1,4 @@
+strategy,total_requests,cache_hits,hit_rate_percent,avg_latency_ms,strategy_config
+STATIC,50,32,64.0,890,固定大小=10
+FLUID,50,39,78.0,745,动态调整,初始=10
+FREQUENCY,50,42,84.0,685,频率优化,目标命中率=0.85

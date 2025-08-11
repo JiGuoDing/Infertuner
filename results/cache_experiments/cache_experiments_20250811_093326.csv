@@ -1,0 +1,4 @@
+strategy,total_requests,cache_hits,hit_rate_percent,avg_latency_ms,strategy_config
+STATIC,80,55,68.7,1067.6,固定大小=10
+FLUID,80,56,70.0,1091.0,初始=10,窗口=3000ms,阈值1.35/0.65
+FREQUENCY,80,56,70.0,1023.3,初始=10,目标命中率=0.85,Bucket=200

@@ -1,0 +1,369 @@
+2025-08-11 10:20:42,500 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - --------------------------------------------------------------------------------
+2025-08-11 10:20:42,502 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  Preconfiguration: 
+2025-08-11 10:20:42,502 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - 
+
+
+RESOURCE_PARAMS extraction logs:
+jvm_params: -Xmx1664299798 -Xms1664299798 -XX:MaxDirectMemorySize=493921243 -XX:MaxMetaspaceSize=268435456
+dynamic_configs: -D taskmanager.memory.network.min=359703515b -D taskmanager.cpu.cores=4.0 -D taskmanager.memory.task.off-heap.size=0b -D taskmanager.memory.jvm-metaspace.size=268435456b -D external-resources=none -D taskmanager.memory.jvm-overhead.min=429496736b -D taskmanager.memory.framework.off-heap.size=134217728b -D taskmanager.memory.network.max=359703515b -D taskmanager.memory.framework.heap.size=134217728b -D taskmanager.memory.managed.size=1438814063b -D taskmanager.memory.task.heap.size=1530082070b -D taskmanager.numberOfTaskSlots=4 -D taskmanager.memory.jvm-overhead.max=429496736b
+logs: WARNING: sun.reflect.Reflection.getCallerClass is not supported. This will impact performance.
+INFO  [] - Loading configuration property: taskmanager.memory.process.size, 4096m
+INFO  [] - Loading configuration property: env.java.opts.jobmanager, -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
+INFO  [] - Loading configuration property: taskmanager.bind-host, localhost
+INFO  [] - Loading configuration property: env.java.opts, -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
+INFO  [] - Loading configuration property: jobmanager.rpc.address, localhost
+INFO  [] - Loading configuration property: jobmanager.memory.process.size, 2048m
+INFO  [] - Loading configuration property: jobmanager.rpc.port, 6123
+INFO  [] - Loading configuration property: rest.bind-address, 0.0.0.0
+INFO  [] - Loading configuration property: rest.port, 8081
+INFO  [] - Loading configuration property: execution.checkpointing.interval, 30s
+INFO  [] - Loading configuration property: jobmanager.bind-host, localhost
+INFO  [] - Loading configuration property: parallelism.default, 1
+INFO  [] - Loading configuration property: taskmanager.numberOfTaskSlots, 4
+INFO  [] - Loading configuration property: taskmanager.memory.managed.fraction, 0.4
+INFO  [] - Loading configuration property: rest.address, 0.0.0.0
+INFO  [] - Loading configuration property: cluster.evenly-spread-out-slots, true
+INFO  [] - Loading configuration property: state.backend, filesystem
+INFO  [] - Loading configuration property: execution.checkpointing.min-pause, 5s
+INFO  [] - Loading configuration property: jobmanager.memory.jvm-metaspace.size, 256m
+INFO  [] - Loading configuration property: env.java.opts.taskmanager, -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
+INFO  [] - Loading configuration property: state.checkpoints.dir, file:///workspace/logs/flink-checkpoints
+INFO  [] - Final TaskExecutor Memory configuration:
+INFO  [] -   Total Process Memory:          4.000gb (4294967296 bytes)
+INFO  [] -     Total Flink Memory:          3.350gb (3597035104 bytes)
+INFO  [] -       Total JVM Heap Memory:     1.550gb (1664299798 bytes)
+INFO  [] -         Framework:               128.000mb (134217728 bytes)
+INFO  [] -         Task:                    1.425gb (1530082070 bytes)
+INFO  [] -       Total Off-heap Memory:     1.800gb (1932735306 bytes)
+INFO  [] -         Managed:                 1.340gb (1438814063 bytes)
+INFO  [] -         Total JVM Direct Memory: 471.040mb (493921243 bytes)
+INFO  [] -           Framework:             128.000mb (134217728 bytes)
+INFO  [] -           Task:                  0 bytes
+INFO  [] -           Network:               343.040mb (359703515 bytes)
+INFO  [] -     JVM Metaspace:               256.000mb (268435456 bytes)
+INFO  [] -     JVM Overhead:                409.600mb (429496736 bytes)
+
+2025-08-11 10:20:42,502 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - --------------------------------------------------------------------------------
+2025-08-11 10:20:42,502 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  Starting TaskManager (Version: 1.17.0, Scala: 2.12, Rev:69ecda0, Date:2023-03-17T10:30:06+01:00)
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  OS current user: root
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  Current Hadoop/Kerberos user: <no hadoop dependency found>
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  JVM: OpenJDK 64-Bit Server VM - Ubuntu - 11/11.0.28+6-post-Ubuntu-1ubuntu122.04.1
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  Arch: amd64
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  Maximum heap size: 1588 MiBytes
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  No Hadoop Dependency available
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  JVM Options:
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -Xmx1664299798
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -Xms1664299798
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -XX:MaxDirectMemorySize=493921243
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -XX:MaxMetaspaceSize=268435456
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -Dfile.encoding=UTF-8
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -Dsun.jnu.encoding=UTF-8
+2025-08-11 10:20:42,503 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -Dfile.encoding=UTF-8
+2025-08-11 10:20:42,504 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -Dsun.jnu.encoding=UTF-8
+2025-08-11 10:20:42,504 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -Dlog.file=/workspace/flink-setup/flink/log/flink--taskexecutor-0-gpu02.log
+2025-08-11 10:20:42,504 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -Dlog4j.configuration=file:/workspace/flink-setup/flink/conf/log4j.properties
+2025-08-11 10:20:42,504 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -Dlog4j.configurationFile=file:/workspace/flink-setup/flink/conf/log4j.properties
+2025-08-11 10:20:42,504 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -Dlogback.configurationFile=file:/workspace/flink-setup/flink/conf/logback.xml
+2025-08-11 10:20:42,504 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  Program Arguments:
+2025-08-11 10:20:42,505 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     --configDir
+2025-08-11 10:20:42,505 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     /workspace/flink-setup/flink/conf
+2025-08-11 10:20:42,505 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,505 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.memory.network.min=359703515b
+2025-08-11 10:20:42,505 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,505 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.cpu.cores=4.0
+2025-08-11 10:20:42,505 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.memory.task.off-heap.size=0b
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.memory.jvm-metaspace.size=268435456b
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     external-resources=none
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.memory.jvm-overhead.min=429496736b
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.memory.framework.off-heap.size=134217728b
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.memory.network.max=359703515b
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.memory.framework.heap.size=134217728b
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,506 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.memory.managed.size=1438814063b
+2025-08-11 10:20:42,507 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,507 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.memory.task.heap.size=1530082070b
+2025-08-11 10:20:42,507 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,507 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.numberOfTaskSlots=4
+2025-08-11 10:20:42,507 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     -D
+2025-08-11 10:20:42,507 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -     taskmanager.memory.jvm-overhead.max=429496736b
+2025-08-11 10:20:42,507 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] -  Classpath: /workspace/flink-setup/flink/lib/flink-cep-1.17.0.jar:/workspace/flink-setup/flink/lib/flink-connector-files-1.17.0.jar:/workspace/flink-setup/flink/lib/flink-csv-1.17.0.jar:/workspace/flink-setup/flink/lib/flink-json-1.17.0.jar:/workspace/flink-setup/flink/lib/flink-scala_2.12-1.17.0.jar:/workspace/flink-setup/flink/lib/flink-table-api-java-uber-1.17.0.jar:/workspace/flink-setup/flink/lib/flink-table-planner-loader-1.17.0.jar:/workspace/flink-setup/flink/lib/flink-table-runtime-1.17.0.jar:/workspace/flink-setup/flink/lib/log4j-1.2-api-2.17.1.jar:/workspace/flink-setup/flink/lib/log4j-api-2.17.1.jar:/workspace/flink-setup/flink/lib/log4j-core-2.17.1.jar:/workspace/flink-setup/flink/lib/log4j-slf4j-impl-2.17.1.jar:/workspace/flink-setup/flink/lib/flink-dist-1.17.0.jar::::
+2025-08-11 10:20:42,508 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - --------------------------------------------------------------------------------
+2025-08-11 10:20:42,508 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - Registered UNIX signal handlers for [TERM, HUP, INT]
+2025-08-11 10:20:42,511 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - Maximum number of open file descriptors is 1048576.
+2025-08-11 10:20:42,518 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: taskmanager.memory.process.size, 4096m
+2025-08-11 10:20:42,518 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: env.java.opts.jobmanager, -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
+2025-08-11 10:20:42,519 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: taskmanager.bind-host, localhost
+2025-08-11 10:20:42,519 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: env.java.opts, -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
+2025-08-11 10:20:42,519 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: jobmanager.rpc.address, localhost
+2025-08-11 10:20:42,519 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: jobmanager.memory.process.size, 2048m
+2025-08-11 10:20:42,519 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: jobmanager.rpc.port, 6123
+2025-08-11 10:20:42,519 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: rest.bind-address, 0.0.0.0
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: rest.port, 8081
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: execution.checkpointing.interval, 30s
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: jobmanager.bind-host, localhost
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: parallelism.default, 1
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: taskmanager.numberOfTaskSlots, 4
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: taskmanager.memory.managed.fraction, 0.4
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: rest.address, 0.0.0.0
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: cluster.evenly-spread-out-slots, true
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: state.backend, filesystem
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: execution.checkpointing.min-pause, 5s
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: jobmanager.memory.jvm-metaspace.size, 256m
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: env.java.opts.taskmanager, -Dfile.encoding=UTF-8 -Dsun.jnu.encoding=UTF-8
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading configuration property: state.checkpoints.dir, file:///workspace/logs/flink-checkpoints
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.memory.network.min, 359703515b
+2025-08-11 10:20:42,520 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.memory.jvm-metaspace.size, 268435456b
+2025-08-11 10:20:42,521 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.memory.task.off-heap.size, 0b
+2025-08-11 10:20:42,521 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.cpu.cores, 4.0
+2025-08-11 10:20:42,521 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: external-resources, none
+2025-08-11 10:20:42,521 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.memory.jvm-overhead.min, 429496736b
+2025-08-11 10:20:42,521 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.memory.framework.off-heap.size, 134217728b
+2025-08-11 10:20:42,521 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.memory.network.max, 359703515b
+2025-08-11 10:20:42,521 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.memory.framework.heap.size, 134217728b
+2025-08-11 10:20:42,521 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.memory.managed.size, 1438814063b
+2025-08-11 10:20:42,521 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.memory.task.heap.size, 1530082070b
+2025-08-11 10:20:42,521 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.numberOfTaskSlots, 4
+2025-08-11 10:20:42,521 INFO  org.apache.flink.configuration.GlobalConfiguration           [] - Loading dynamic configuration property: taskmanager.memory.jvm-overhead.max, 429496736b
+2025-08-11 10:20:42,559 INFO  org.apache.flink.core.fs.FileSystem                          [] - Hadoop is not in the classpath/dependencies. The extended set of supported File Systems via Hadoop is not available.
+2025-08-11 10:20:42,574 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID not found, creating it: metrics-prometheus
+2025-08-11 10:20:42,580 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID not found, creating it: metrics-slf4j
+2025-08-11 10:20:42,580 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID not found, creating it: metrics-influx
+2025-08-11 10:20:42,580 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID not found, creating it: metrics-datadog
+2025-08-11 10:20:42,580 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID not found, creating it: external-resource-gpu
+2025-08-11 10:20:42,580 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID not found, creating it: metrics-graphite
+2025-08-11 10:20:42,580 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID not found, creating it: metrics-statsd
+2025-08-11 10:20:42,581 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID not found, creating it: metrics-jmx
+2025-08-11 10:20:42,601 INFO  org.apache.flink.runtime.state.changelog.StateChangelogStorageLoader [] - StateChangelogStorageLoader initialized with shortcut names {memory,filesystem}.
+2025-08-11 10:20:42,601 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-prometheus
+2025-08-11 10:20:42,601 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-slf4j
+2025-08-11 10:20:42,601 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-influx
+2025-08-11 10:20:42,601 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-datadog
+2025-08-11 10:20:42,601 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: external-resource-gpu
+2025-08-11 10:20:42,601 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-graphite
+2025-08-11 10:20:42,601 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-statsd
+2025-08-11 10:20:42,602 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-jmx
+2025-08-11 10:20:42,603 INFO  org.apache.flink.runtime.state.changelog.StateChangelogStorageLoader [] - StateChangelogStorageLoader initialized with shortcut names {memory,filesystem}.
+2025-08-11 10:20:42,620 INFO  org.apache.flink.runtime.security.modules.HadoopModuleFactory [] - Cannot create Hadoop Security Module because Hadoop cannot be found in the Classpath.
+2025-08-11 10:20:42,635 INFO  org.apache.flink.runtime.security.modules.JaasModule         [] - Jaas file will be created as /tmp/jaas-9453706215697791516.conf.
+2025-08-11 10:20:42,641 INFO  org.apache.flink.runtime.security.contexts.HadoopSecurityContextFactory [] - Cannot install HadoopSecurityContext because Hadoop cannot be found in the Classpath.
+2025-08-11 10:20:42,972 INFO  org.apache.flink.runtime.util.LeaderRetrievalUtils           [] - Trying to select the network interface and address to use by connecting to the leading JobManager.
+2025-08-11 10:20:42,973 INFO  org.apache.flink.runtime.util.LeaderRetrievalUtils           [] - TaskManager will try to connect for PT10S before falling back to heuristics
+2025-08-11 10:20:43,145 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - TaskManager will use hostname/address 'gpu02' (127.0.0.1) for communication.
+2025-08-11 10:20:43,170 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcServiceUtils        [] - Trying to start actor system, external address 127.0.0.1:0, bind address localhost:0.
+2025-08-11 10:20:43,523 INFO  akka.event.slf4j.Slf4jLogger                                 [] - Slf4jLogger started
+2025-08-11 10:20:43,553 INFO  akka.remote.RemoteActorRefProvider                           [] - Akka Cluster not in use - enabling unsafe features anyway because `akka.remote.use-unsafe-remote-features-outside-cluster` has been enabled.
+2025-08-11 10:20:43,553 INFO  akka.remote.Remoting                                         [] - Starting remoting
+2025-08-11 10:20:43,661 INFO  akka.remote.Remoting                                         [] - Remoting started; listening on addresses :[akka.tcp://flink@127.0.0.1:15207]
+2025-08-11 10:20:43,762 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcServiceUtils        [] - Actor system started at akka.tcp://flink@127.0.0.1:15207
+2025-08-11 10:20:43,775 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - Using working directory: WorkingDirectory(/tmp/tm_127.0.0.1:15207-2bd480)
+2025-08-11 10:20:43,782 INFO  org.apache.flink.runtime.metrics.MetricRegistryImpl          [] - No metrics reporter configured, no metrics will be exposed/reported.
+2025-08-11 10:20:43,785 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcServiceUtils        [] - Trying to start actor system, external address 127.0.0.1:0, bind address localhost:0.
+2025-08-11 10:20:43,802 INFO  akka.event.slf4j.Slf4jLogger                                 [] - Slf4jLogger started
+2025-08-11 10:20:43,807 INFO  akka.remote.RemoteActorRefProvider                           [] - Akka Cluster not in use - enabling unsafe features anyway because `akka.remote.use-unsafe-remote-features-outside-cluster` has been enabled.
+2025-08-11 10:20:43,810 INFO  akka.remote.Remoting                                         [] - Starting remoting
+2025-08-11 10:20:43,830 INFO  akka.remote.Remoting                                         [] - Remoting started; listening on addresses :[akka.tcp://flink-metrics@127.0.0.1:12841]
+2025-08-11 10:20:43,842 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcServiceUtils        [] - Actor system started at akka.tcp://flink-metrics@127.0.0.1:12841
+2025-08-11 10:20:43,857 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcService             [] - Starting RPC endpoint for org.apache.flink.runtime.metrics.dump.MetricQueryService at akka://flink-metrics/user/rpc/MetricQueryService_127.0.0.1:15207-2bd480 .
+2025-08-11 10:20:43,870 INFO  org.apache.flink.runtime.blob.PermanentBlobCache             [] - Created BLOB cache storage directory /tmp/tm_127.0.0.1:15207-2bd480/blobStorage
+2025-08-11 10:20:43,875 INFO  org.apache.flink.runtime.blob.TransientBlobCache             [] - Created BLOB cache storage directory /tmp/tm_127.0.0.1:15207-2bd480/blobStorage
+2025-08-11 10:20:43,878 INFO  org.apache.flink.runtime.externalresource.ExternalResourceUtils [] - Enabled external resources: []
+2025-08-11 10:20:43,879 INFO  org.apache.flink.runtime.security.token.DelegationTokenReceiverRepository [] - Loading delegation token receivers
+2025-08-11 10:20:43,883 INFO  org.apache.flink.runtime.security.token.DelegationTokenReceiverRepository [] - Delegation token receiver hadoopfs loaded and initialized
+2025-08-11 10:20:43,883 INFO  org.apache.flink.runtime.security.token.DelegationTokenReceiverRepository [] - Delegation token receiver hbase loaded and initialized
+2025-08-11 10:20:43,883 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-prometheus
+2025-08-11 10:20:43,884 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-slf4j
+2025-08-11 10:20:43,884 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-influx
+2025-08-11 10:20:43,884 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-datadog
+2025-08-11 10:20:43,884 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: external-resource-gpu
+2025-08-11 10:20:43,884 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-graphite
+2025-08-11 10:20:43,884 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-statsd
+2025-08-11 10:20:43,884 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-jmx
+2025-08-11 10:20:43,884 INFO  org.apache.flink.runtime.security.token.DelegationTokenReceiverRepository [] - Delegation token receivers loaded successfully
+2025-08-11 10:20:43,884 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - Starting TaskManager with ResourceID: 127.0.0.1:15207-2bd480
+2025-08-11 10:20:43,901 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerServices    [] - Temporary file directory '/tmp': total 1758 GB, usable 31 GB (1.76% usable)
+2025-08-11 10:20:43,904 INFO  org.apache.flink.runtime.io.disk.iomanager.IOManager         [] - Created a new FileChannelManager for spilling of task related data to disk (joins, sorting, ...). Used directories:
+	/tmp/flink-io-7cd437b8-92d1-4909-bc0d-adb707a32b41
+2025-08-11 10:20:43,910 INFO  org.apache.flink.runtime.io.network.netty.NettyConfig        [] - NettyConfig [server address: localhost/127.0.0.1, server port: 0, ssl enabled: false, memory segment size (bytes): 32768, transport type: AUTO, number of server threads: 4 (manual), number of client threads: 4 (manual), server connect backlog: 0 (use Netty's default), client connect timeout (sec): 120, send/receive buffer size (bytes): 0 (use Netty's default)]
+2025-08-11 10:20:43,966 INFO  org.apache.flink.runtime.io.network.NettyShuffleServiceFactory [] - Created a new FileChannelManager for storing result partitions of BLOCKING shuffles. Used directories:
+	/tmp/flink-netty-shuffle-ef728337-3d28-4dd8-84fd-38afcbcf75da
+2025-08-11 10:20:44,173 INFO  org.apache.flink.runtime.io.network.buffer.NetworkBufferPool [] - Allocated 343 MB for network buffer pool (number of memory segments: 10977, bytes per segment: 32768).
+2025-08-11 10:20:44,186 INFO  org.apache.flink.runtime.io.network.NettyShuffleEnvironment  [] - Starting the network environment and its components.
+2025-08-11 10:20:44,236 INFO  org.apache.flink.runtime.io.network.netty.NettyClient        [] - Transport type 'auto': using EPOLL.
+2025-08-11 10:20:44,238 INFO  org.apache.flink.runtime.io.network.netty.NettyClient        [] - Successful initialization (took 51 ms).
+2025-08-11 10:20:44,242 INFO  org.apache.flink.runtime.io.network.netty.NettyServer        [] - Transport type 'auto': using EPOLL.
+2025-08-11 10:20:44,313 INFO  org.apache.flink.runtime.io.network.netty.NettyServer        [] - Successful initialization (took 74 ms). Listening on SocketAddress /127.0.0.1:1405.
+2025-08-11 10:20:44,315 INFO  org.apache.flink.runtime.taskexecutor.KvStateService         [] - Starting the kvState service and its components.
+2025-08-11 10:20:44,341 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcService             [] - Starting RPC endpoint for org.apache.flink.runtime.taskexecutor.TaskExecutor at akka://flink/user/rpc/taskmanager_0 .
+2025-08-11 10:20:44,357 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Start job leader service.
+2025-08-11 10:20:44,361 INFO  org.apache.flink.runtime.filecache.FileCache                 [] - User file cache uses directory /tmp/flink-dist-cache-6cfca6ba-794a-4ae8-8d47-be96d72c58c8
+2025-08-11 10:20:44,363 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Connecting to ResourceManager akka.tcp://flink@localhost:6123/user/rpc/resourcemanager_*(00000000000000000000000000000000).
+2025-08-11 10:20:44,579 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Resolved ResourceManager address, beginning registration
+2025-08-11 10:20:44,697 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Successful registration at resource manager akka.tcp://flink@localhost:6123/user/rpc/resourcemanager_* under registration id 3948770ce2333636843b162038913710.
+2025-08-11 10:20:52,330 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Receive slot request 10a33638f1e8415371ac9c5e7831af92 for job d27ea7ebd8db8b05f5959d32731f89f8 from resource manager with leader id 00000000000000000000000000000000.
+2025-08-11 10:20:52,335 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Allocated slot for 10a33638f1e8415371ac9c5e7831af92.
+2025-08-11 10:20:52,336 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Add job d27ea7ebd8db8b05f5959d32731f89f8 for job leader monitoring.
+2025-08-11 10:20:52,337 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Try to register at job manager akka.tcp://flink@localhost:6123/user/rpc/jobmanager_2 with leader id 00000000-0000-0000-0000-000000000000.
+2025-08-11 10:20:52,345 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Receive slot request 606a4134173486c2caaf33d13b28ebb3 for job d27ea7ebd8db8b05f5959d32731f89f8 from resource manager with leader id 00000000000000000000000000000000.
+2025-08-11 10:20:52,345 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Allocated slot for 606a4134173486c2caaf33d13b28ebb3.
+2025-08-11 10:20:52,360 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Resolved JobManager address, beginning registration
+2025-08-11 10:20:52,398 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Successful registration at job manager akka.tcp://flink@localhost:6123/user/rpc/jobmanager_2 for job d27ea7ebd8db8b05f5959d32731f89f8.
+2025-08-11 10:20:52,399 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Establish JobManager connection for job d27ea7ebd8db8b05f5959d32731f89f8.
+2025-08-11 10:20:52,401 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Offer reserved slots to the leader of job d27ea7ebd8db8b05f5959d32731f89f8.
+2025-08-11 10:20:52,457 INFO  org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl [] - Activate slot 606a4134173486c2caaf33d13b28ebb3.
+2025-08-11 10:20:52,476 INFO  org.apache.flink.runtime.state.changelog.StateChangelogStorageLoader [] - Creating a changelog storage with name 'memory'.
+2025-08-11 10:20:52,484 INFO  org.apache.flink.runtime.state.TaskExecutorChannelStateExecutorFactoryManager [] - Creating the channel state executor factory for job id d27ea7ebd8db8b05f5959d32731f89f8
+2025-08-11 10:20:52,494 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Received task Source: Request Source (1/1)#0 (01d9b8c0dfed0c1da44622e367538e69_bc764cd8ddf7a0cff126f51c16239658_0_0), deploy into slot with allocation id 606a4134173486c2caaf33d13b28ebb3.
+2025-08-11 10:20:52,495 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Source: Request Source (1/1)#0 (01d9b8c0dfed0c1da44622e367538e69_bc764cd8ddf7a0cff126f51c16239658_0_0) switched from CREATED to DEPLOYING.
+2025-08-11 10:20:52,496 INFO  org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl [] - Activate slot 606a4134173486c2caaf33d13b28ebb3.
+2025-08-11 10:20:52,501 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Loading JAR files for task Source: Request Source (1/1)#0 (01d9b8c0dfed0c1da44622e367538e69_bc764cd8ddf7a0cff126f51c16239658_0_0) [DEPLOYING].
+2025-08-11 10:20:52,506 INFO  org.apache.flink.runtime.blob.BlobClient                     [] - Downloading d27ea7ebd8db8b05f5959d32731f89f8/p-37f90f8c9381de2a3b666325ec09bb12aa061988-0b13aeeb369f0c5fbdb9be2c5fdb476e from localhost/127.0.0.1:29551
+2025-08-11 10:20:52,516 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Received task Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (1/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_0_0), deploy into slot with allocation id 606a4134173486c2caaf33d13b28ebb3.
+2025-08-11 10:20:52,516 INFO  org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl [] - Activate slot 10a33638f1e8415371ac9c5e7831af92.
+2025-08-11 10:20:52,517 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (1/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_0_0) switched from CREATED to DEPLOYING.
+2025-08-11 10:20:52,519 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Loading JAR files for task Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (1/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_0_0) [DEPLOYING].
+2025-08-11 10:20:52,521 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Received task Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (2/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_1_0), deploy into slot with allocation id 10a33638f1e8415371ac9c5e7831af92.
+2025-08-11 10:20:52,522 INFO  org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl [] - Activate slot 10a33638f1e8415371ac9c5e7831af92.
+2025-08-11 10:20:52,522 INFO  org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl [] - Activate slot 606a4134173486c2caaf33d13b28ebb3.
+2025-08-11 10:20:52,522 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (2/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_1_0) switched from CREATED to DEPLOYING.
+2025-08-11 10:20:52,523 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Loading JAR files for task Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (2/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_1_0) [DEPLOYING].
+2025-08-11 10:20:52,582 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using job/cluster config to configure application-defined state backend: org.apache.flink.runtime.state.hashmap.HashMapStateBackend@2d0c3f2f
+2025-08-11 10:20:52,582 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using job/cluster config to configure application-defined state backend: org.apache.flink.runtime.state.hashmap.HashMapStateBackend@1c22afaf
+2025-08-11 10:20:52,583 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using job/cluster config to configure application-defined state backend: org.apache.flink.runtime.state.hashmap.HashMapStateBackend@fb2e16
+2025-08-11 10:20:52,583 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using application-defined state backend: org.apache.flink.runtime.state.hashmap.HashMapStateBackend@4cca26c7
+2025-08-11 10:20:52,583 INFO  org.apache.flink.runtime.state.StateBackendLoader            [] - State backend loader loads the state backend as HashMapStateBackend
+2025-08-11 10:20:52,583 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using application-defined state backend: org.apache.flink.runtime.state.hashmap.HashMapStateBackend@4d54dcbf
+2025-08-11 10:20:52,583 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using application-defined state backend: org.apache.flink.runtime.state.hashmap.HashMapStateBackend@3be25db2
+2025-08-11 10:20:52,584 INFO  org.apache.flink.runtime.state.StateBackendLoader            [] - State backend loader loads the state backend as HashMapStateBackend
+2025-08-11 10:20:52,584 INFO  org.apache.flink.runtime.state.StateBackendLoader            [] - State backend loader loads the state backend as HashMapStateBackend
+2025-08-11 10:20:52,594 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using job/cluster config to configure application-defined checkpoint storage: org.apache.flink.runtime.state.storage.FileSystemCheckpointStorage@200dd9d5
+2025-08-11 10:20:52,594 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using job/cluster config to configure application-defined checkpoint storage: org.apache.flink.runtime.state.storage.FileSystemCheckpointStorage@200dd9d5
+2025-08-11 10:20:52,594 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using job/cluster config to configure application-defined checkpoint storage: org.apache.flink.runtime.state.storage.FileSystemCheckpointStorage@200dd9d5
+2025-08-11 10:20:52,608 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (2/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_1_0) switched from DEPLOYING to INITIALIZING.
+2025-08-11 10:20:52,608 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (1/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_0_0) switched from DEPLOYING to INITIALIZING.
+2025-08-11 10:20:52,609 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Source: Request Source (1/1)#0 (01d9b8c0dfed0c1da44622e367538e69_bc764cd8ddf7a0cff126f51c16239658_0_0) switched from DEPLOYING to INITIALIZING.
+2025-08-11 10:20:52,711 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Source: Request Source (1/1)#0 (01d9b8c0dfed0c1da44622e367538e69_bc764cd8ddf7a0cff126f51c16239658_0_0) switched from INITIALIZING to RUNNING.
+2025-08-11 10:20:52,717 INFO  com.infertuner.sources.BasicRequestSource                    [] - 开始生成 50 个测试请求，间隔 500ms
+2025-08-11 10:20:52,721 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 1/50: req_000
+2025-08-11 10:20:52,721 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - Task 0 启动，绑定到 GPU 0
+2025-08-11 10:20:52,721 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - Task 1 启动，绑定到 GPU 1
+2025-08-11 10:20:52,816 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - 启动 GPU 0 推理服务...
+2025-08-11 10:20:52,816 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - 启动 GPU 1 推理服务...
+2025-08-11 10:20:52,821 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - 等待 GPU 0 服务初始化...
+2025-08-11 10:20:52,821 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - 等待 GPU 1 服务初始化...
+2025-08-11 10:20:53,221 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 2/50: req_001
+2025-08-11 10:20:53,722 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 3/50: req_002
+2025-08-11 10:20:54,223 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 4/50: req_003
+2025-08-11 10:20:54,724 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 5/50: req_004
+2025-08-11 10:20:55,225 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 6/50: req_005
+2025-08-11 10:20:55,726 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 7/50: req_006
+2025-08-11 10:20:56,228 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 8/50: req_007
+2025-08-11 10:20:56,729 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 9/50: req_008
+2025-08-11 10:20:57,230 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 10/50: req_009
+2025-08-11 10:20:57,731 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 11/50: req_010
+2025-08-11 10:20:58,231 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 12/50: req_011
+2025-08-11 10:20:58,733 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 13/50: req_012
+2025-08-11 10:20:59,234 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 14/50: req_013
+2025-08-11 10:20:59,734 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 15/50: req_014
+2025-08-11 10:21:00,235 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 16/50: req_015
+2025-08-11 10:21:00,736 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 17/50: req_016
+2025-08-11 10:21:00,822 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - ✅ GPU 0 推理服务启动成功
+2025-08-11 10:21:00,822 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - GPU 0 推理服务启动完成
+2025-08-11 10:21:00,823 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - ✅ GPU 1 推理服务启动成功
+2025-08-11 10:21:00,823 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - GPU 1 推理服务启动完成
+2025-08-11 10:21:00,832 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (1/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_0_0) switched from INITIALIZING to RUNNING.
+2025-08-11 10:21:00,832 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (2/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_1_0) switched from INITIALIZING to RUNNING.
+2025-08-11 10:21:01,237 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 18/50: req_017
+2025-08-11 10:21:01,738 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 19/50: req_018
+2025-08-11 10:21:01,758 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #1: GPU-0 | ✅ | 857.1ms | 过拟合（Overfitting）是指模型在训练数据上表现良好，但在测试数据上的表现较差的现象。这通常发生在机器学习算法中...
+2025-08-11 10:21:02,239 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 20/50: req_019
+2025-08-11 10:21:02,424 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #2: GPU-0 | ✅ | 664.1ms | 机器学习是一种人工智能技术，它使用算法和统计模型来使计算机系统从数据中自动学习和改进。这种技术可以用来解决复杂的问题，例...
+2025-08-11 10:21:02,740 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 21/50: req_020
+2025-08-11 10:21:02,849 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #1: GPU-0 | ✅ | 1969.4ms | 机器学习是一种人工智能技术，它使用统计和算法模型来让计算机从数据中自动学习模式和规律，从而实现对未知数据的预测、分类、识...
+2025-08-11 10:21:03,237 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #3: GPU-0 | ✅ | 810.3ms | 机器学习是一种人工智能技术，它允许计算机系统从数据中自动学习和改进其性能，而无需明确编程。它使用统计学、概率论、数学和工...
+2025-08-11 10:21:03,241 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 22/50: req_021
+2025-08-11 10:21:03,709 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #2: GPU-0 | ✅ | 858.1ms | 机器学习是一种人工智能技术，它使用算法和统计模型让计算机系统从数据中自动学习，并从中提取特征并做出决策。简而言之，机器学...
+2025-08-11 10:21:03,741 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 23/50: req_022
+2025-08-11 10:21:03,823 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #4: GPU-0 | ✅ | 584.2ms | 神经网络是一种模仿人类大脑的计算模型，它通过构建多层相互连接的节点（称为“神经元”），以解决复杂的非线性问题。神经网络的...
+2025-08-11 10:21:04,242 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 24/50: req_023
+2025-08-11 10:21:04,530 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #5: GPU-0 | ✅ | 705.2ms | 优化模型性能需要考虑以下几个方面：
+
+1. 数据预处理：首先，对数据进行清洗和预处理，包括缺失值处理、异常值处理、标准化...
+2025-08-11 10:21:04,743 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 25/50: req_024
+2025-08-11 10:21:04,996 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #3: GPU-0 | ✅ | 1285.1ms | 神经网络是一种模仿人脑的计算模型，它由大量节点（或称为神经元）组成，这些节点之间通过权重连接形成一个复杂的数学网络。神经...
+2025-08-11 10:21:05,243 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 26/50: req_025
+2025-08-11 10:21:05,745 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 27/50: req_026
+2025-08-11 10:21:06,037 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #4: GPU-0 | ✅ | 1038.0ms | 为了优化模型性能，可以采取以下步骤：
+
+1. 数据预处理：对数据进行清洗、归一化和特征选择，以提高模型的准确性。这包括去...
+2025-08-11 10:21:06,245 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 28/50: req_027
+2025-08-11 10:21:06,746 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 29/50: req_028
+2025-08-11 10:21:07,247 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 30/50: req_029
+2025-08-11 10:21:07,288 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #5: GPU-0 | ✅ | 1248.6ms | 过拟合（Overfitting）是指机器学习模型在训练集上表现良好，但在测试集或新数据上的表现不佳的现象。简单来说，过拟...
+2025-08-11 10:21:07,747 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 31/50: req_030
+2025-08-11 10:21:08,248 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 32/50: req_031
+2025-08-11 10:21:08,749 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 33/50: req_032
+2025-08-11 10:21:09,249 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 34/50: req_033
+2025-08-11 10:21:09,528 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - === 整体统计 ===
+2025-08-11 10:21:09,528 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 总请求: 10 | 成功: 10 (100.0%) | 平均延迟: 860.5ms | 吞吐量: 0.54 req/s
+2025-08-11 10:21:09,528 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - === GPU分布统计 ===
+2025-08-11 10:21:09,528 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - GPU-0: 请求=10 | 成功率=100.0% | 平均延迟=860.5ms | 吞吐量=0.54 req/s
+2025-08-11 10:21:09,528 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - ========================
+2025-08-11 10:21:09,750 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 35/50: req_034
+2025-08-11 10:21:10,251 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 36/50: req_035
+2025-08-11 10:21:10,752 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 37/50: req_036
+2025-08-11 10:21:11,252 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 38/50: req_037
+2025-08-11 10:21:11,753 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 39/50: req_038
+2025-08-11 10:21:12,154 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - === 整体统计 ===
+2025-08-11 10:21:12,154 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 总请求: 10 | 成功: 10 (100.0%) | 平均延迟: 1125.2ms | 吞吐量: 0.48 req/s
+2025-08-11 10:21:12,155 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - === GPU分布统计 ===
+2025-08-11 10:21:12,155 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - GPU-0: 请求=10 | 成功率=100.0% | 平均延迟=1125.2ms | 吞吐量=0.48 req/s
+2025-08-11 10:21:12,155 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - ========================
+2025-08-11 10:21:12,254 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 40/50: req_039
+2025-08-11 10:21:12,755 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 41/50: req_040
+2025-08-11 10:21:13,256 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 42/50: req_041
+2025-08-11 10:21:13,756 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 43/50: req_042
+2025-08-11 10:21:14,257 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 44/50: req_043
+2025-08-11 10:21:14,758 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 45/50: req_044
+2025-08-11 10:21:15,258 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 46/50: req_045
+2025-08-11 10:21:15,759 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 47/50: req_046
+2025-08-11 10:21:16,260 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 48/50: req_047
+2025-08-11 10:21:16,760 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 49/50: req_048
+2025-08-11 10:21:17,261 INFO  com.infertuner.sources.BasicRequestSource                    [] - 生成请求 50/50: req_049
+2025-08-11 10:21:17,261 INFO  com.infertuner.sources.BasicRequestSource                    [] - 请求生成完成，共 50 个
+2025-08-11 10:21:19,762 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - === 整体统计 ===
+2025-08-11 10:21:19,762 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 总请求: 20 | 成功: 20 (100.0%) | 平均延迟: 940.9ms | 吞吐量: 0.70 req/s
+2025-08-11 10:21:19,762 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - === GPU分布统计 ===
+2025-08-11 10:21:19,763 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - GPU-0: 请求=20 | 成功率=100.0% | 平均延迟=940.9ms | 吞吐量=0.70 req/s
+2025-08-11 10:21:19,763 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - ========================
+2025-08-11 10:21:19,763 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #20: GPU-0 | ✅ | 900.5ms | 神经网络是一种模仿人类大脑神经元工作的计算模型，它通过一系列的层来处理和分析数据，并从中学习和提取模式。以下是神经网络的...
+2025-08-11 10:21:22,478 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - === 整体统计 ===
+2025-08-11 10:21:22,478 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 总请求: 20 | 成功: 20 (100.0%) | 平均延迟: 1077.7ms | 吞吐量: 0.64 req/s
+2025-08-11 10:21:22,478 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - === GPU分布统计 ===
+2025-08-11 10:21:22,479 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - GPU-0: 请求=20 | 成功率=100.0% | 平均延迟=1077.7ms | 吞吐量=0.64 req/s
+2025-08-11 10:21:22,479 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - ========================
+2025-08-11 10:21:22,479 INFO  com.infertuner.sinks.GPUMonitorSink                          [] - 结果 #20: GPU-0 | ✅ | 1530.9ms | 神经网络是一种模拟人脑神经元之间相互作用的计算模型，它通过一系列复杂的数学算法和结构，用于处理大量数据，并从中提取有用的...
+2025-08-11 10:21:42,665 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Source: Request Source (1/1)#0 (01d9b8c0dfed0c1da44622e367538e69_bc764cd8ddf7a0cff126f51c16239658_0_0) switched from RUNNING to FINISHED.
+2025-08-11 10:21:42,665 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Freeing task resources for Source: Request Source (1/1)#0 (01d9b8c0dfed0c1da44622e367538e69_bc764cd8ddf7a0cff126f51c16239658_0_0).
+2025-08-11 10:21:42,667 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - 关闭 GPU 1 推理服务...
+2025-08-11 10:21:42,669 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - 关闭 GPU 0 推理服务...
+2025-08-11 10:21:42,669 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Un-registering task and sending final execution state FINISHED to JobManager for task Source: Request Source (1/1)#0 01d9b8c0dfed0c1da44622e367538e69_bc764cd8ddf7a0cff126f51c16239658_0_0.
+2025-08-11 10:21:43,938 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - ✅ GPU 0 推理服务已关闭
+2025-08-11 10:21:43,940 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (1/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_0_0) switched from RUNNING to FINISHED.
+2025-08-11 10:21:43,940 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Freeing task resources for Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (1/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_0_0).
+2025-08-11 10:21:43,943 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Un-registering task and sending final execution state FINISHED to JobManager for task Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (1/2)#0 01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_0_0.
+2025-08-11 10:21:44,004 INFO  com.infertuner.processors.GPUInferenceProcessor              [] - ✅ GPU 1 推理服务已关闭
+2025-08-11 10:21:44,006 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (2/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_1_0) switched from RUNNING to FINISHED.
+2025-08-11 10:21:44,006 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Freeing task resources for Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (2/2)#0 (01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_1_0).
+2025-08-11 10:21:44,012 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Un-registering task and sending final execution state FINISHED to JobManager for task Multi-GPU Inference Processor -> Sink: Multi-GPU Monitor Sink (2/2)#0 01d9b8c0dfed0c1da44622e367538e69_20ba6b65f97481d5570070de90e4e791_1_0.
+2025-08-11 10:21:44,066 INFO  org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl [] - Free slot TaskSlot(index:0, state:ACTIVE, resource profile: ResourceProfile{cpuCores=1, taskHeapMemory=364.800mb (382520517 bytes), taskOffHeapMemory=0 bytes, managedMemory=343.040mb (359703515 bytes), networkMemory=85.760mb (89925878 bytes)}, allocationId: 10a33638f1e8415371ac9c5e7831af92, jobId: d27ea7ebd8db8b05f5959d32731f89f8).
+2025-08-11 10:21:44,070 INFO  org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl [] - Free slot TaskSlot(index:1, state:ACTIVE, resource profile: ResourceProfile{cpuCores=1, taskHeapMemory=364.800mb (382520517 bytes), taskOffHeapMemory=0 bytes, managedMemory=343.040mb (359703515 bytes), networkMemory=85.760mb (89925878 bytes)}, allocationId: 606a4134173486c2caaf33d13b28ebb3, jobId: d27ea7ebd8db8b05f5959d32731f89f8).
+2025-08-11 10:21:44,071 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Remove job d27ea7ebd8db8b05f5959d32731f89f8 from job leader monitoring.
+2025-08-11 10:21:44,072 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Close JobManager connection for job d27ea7ebd8db8b05f5959d32731f89f8.

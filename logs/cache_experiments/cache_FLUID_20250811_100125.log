@@ -1,0 +1,753 @@
+2025-08-11 10:03:44,197 INFO  org.apache.flink.runtime.util.LeaderRetrievalUtils           [] - Trying to select the network interface and address to use by connecting to the leading JobManager.
+2025-08-11 10:03:44,197 INFO  org.apache.flink.runtime.util.LeaderRetrievalUtils           [] - TaskManager will try to connect for PT10S before falling back to heuristics
+2025-08-11 10:03:44,434 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - TaskManager will use hostname/address 'gpu02' (127.0.0.1) for communication.
+2025-08-11 10:03:44,468 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcServiceUtils        [] - Trying to start actor system, external address 127.0.0.1:0, bind address localhost:0.
+2025-08-11 10:03:45,013 INFO  akka.event.slf4j.Slf4jLogger                                 [] - Slf4jLogger started
+2025-08-11 10:03:45,044 INFO  akka.remote.RemoteActorRefProvider                           [] - Akka Cluster not in use - enabling unsafe features anyway because `akka.remote.use-unsafe-remote-features-outside-cluster` has been enabled.
+2025-08-11 10:03:45,045 INFO  akka.remote.Remoting                                         [] - Starting remoting
+2025-08-11 10:03:45,198 INFO  akka.remote.Remoting                                         [] - Remoting started; listening on addresses :[akka.tcp://flink@127.0.0.1:18309]
+2025-08-11 10:03:45,315 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcServiceUtils        [] - Actor system started at akka.tcp://flink@127.0.0.1:18309
+2025-08-11 10:03:45,331 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - Using working directory: WorkingDirectory(/tmp/tm_127.0.0.1:18309-b7ac1c)
+2025-08-11 10:03:45,339 INFO  org.apache.flink.runtime.metrics.MetricRegistryImpl          [] - No metrics reporter configured, no metrics will be exposed/reported.
+2025-08-11 10:03:45,342 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcServiceUtils        [] - Trying to start actor system, external address 127.0.0.1:0, bind address localhost:0.
+2025-08-11 10:03:45,362 INFO  akka.event.slf4j.Slf4jLogger                                 [] - Slf4jLogger started
+2025-08-11 10:03:45,366 INFO  akka.remote.RemoteActorRefProvider                           [] - Akka Cluster not in use - enabling unsafe features anyway because `akka.remote.use-unsafe-remote-features-outside-cluster` has been enabled.
+2025-08-11 10:03:45,371 INFO  akka.remote.Remoting                                         [] - Starting remoting
+2025-08-11 10:03:45,392 INFO  akka.remote.Remoting                                         [] - Remoting started; listening on addresses :[akka.tcp://flink-metrics@127.0.0.1:18277]
+2025-08-11 10:03:45,403 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcServiceUtils        [] - Actor system started at akka.tcp://flink-metrics@127.0.0.1:18277
+2025-08-11 10:03:45,418 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcService             [] - Starting RPC endpoint for org.apache.flink.runtime.metrics.dump.MetricQueryService at akka://flink-metrics/user/rpc/MetricQueryService_127.0.0.1:18309-b7ac1c .
+2025-08-11 10:03:45,431 INFO  org.apache.flink.runtime.blob.PermanentBlobCache             [] - Created BLOB cache storage directory /tmp/tm_127.0.0.1:18309-b7ac1c/blobStorage
+2025-08-11 10:03:45,436 INFO  org.apache.flink.runtime.blob.TransientBlobCache             [] - Created BLOB cache storage directory /tmp/tm_127.0.0.1:18309-b7ac1c/blobStorage
+2025-08-11 10:03:45,440 INFO  org.apache.flink.runtime.externalresource.ExternalResourceUtils [] - Enabled external resources: []
+2025-08-11 10:03:45,441 INFO  org.apache.flink.runtime.security.token.DelegationTokenReceiverRepository [] - Loading delegation token receivers
+2025-08-11 10:03:45,445 INFO  org.apache.flink.runtime.security.token.DelegationTokenReceiverRepository [] - Delegation token receiver hadoopfs loaded and initialized
+2025-08-11 10:03:45,445 INFO  org.apache.flink.runtime.security.token.DelegationTokenReceiverRepository [] - Delegation token receiver hbase loaded and initialized
+2025-08-11 10:03:45,445 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-prometheus
+2025-08-11 10:03:45,445 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-slf4j
+2025-08-11 10:03:45,445 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-influx
+2025-08-11 10:03:45,446 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-datadog
+2025-08-11 10:03:45,446 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: external-resource-gpu
+2025-08-11 10:03:45,446 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-graphite
+2025-08-11 10:03:45,446 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-statsd
+2025-08-11 10:03:45,446 INFO  org.apache.flink.core.plugin.DefaultPluginManager            [] - Plugin loader with ID found, reusing it: metrics-jmx
+2025-08-11 10:03:45,446 INFO  org.apache.flink.runtime.security.token.DelegationTokenReceiverRepository [] - Delegation token receivers loaded successfully
+2025-08-11 10:03:45,446 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerRunner      [] - Starting TaskManager with ResourceID: 127.0.0.1:18309-b7ac1c
+2025-08-11 10:03:45,464 INFO  org.apache.flink.runtime.taskexecutor.TaskManagerServices    [] - Temporary file directory '/tmp': total 1758 GB, usable 31 GB (1.76% usable)
+2025-08-11 10:03:45,466 INFO  org.apache.flink.runtime.io.disk.iomanager.IOManager         [] - Created a new FileChannelManager for spilling of task related data to disk (joins, sorting, ...). Used directories:
+	/tmp/flink-io-dceed617-c3ab-4664-9efb-b38ec02b51be
+2025-08-11 10:03:45,472 INFO  org.apache.flink.runtime.io.network.netty.NettyConfig        [] - NettyConfig [server address: localhost/127.0.0.1, server port: 0, ssl enabled: false, memory segment size (bytes): 32768, transport type: AUTO, number of server threads: 4 (manual), number of client threads: 4 (manual), server connect backlog: 0 (use Netty's default), client connect timeout (sec): 120, send/receive buffer size (bytes): 0 (use Netty's default)]
+2025-08-11 10:03:45,526 INFO  org.apache.flink.runtime.io.network.NettyShuffleServiceFactory [] - Created a new FileChannelManager for storing result partitions of BLOCKING shuffles. Used directories:
+	/tmp/flink-netty-shuffle-6d6796b8-b0a8-4a67-9ebc-648ec8ea7a6d
+2025-08-11 10:03:45,740 INFO  org.apache.flink.runtime.io.network.buffer.NetworkBufferPool [] - Allocated 343 MB for network buffer pool (number of memory segments: 10977, bytes per segment: 32768).
+2025-08-11 10:03:45,756 INFO  org.apache.flink.runtime.io.network.NettyShuffleEnvironment  [] - Starting the network environment and its components.
+2025-08-11 10:03:45,807 INFO  org.apache.flink.runtime.io.network.netty.NettyClient        [] - Transport type 'auto': using EPOLL.
+2025-08-11 10:03:45,808 INFO  org.apache.flink.runtime.io.network.netty.NettyClient        [] - Successful initialization (took 51 ms).
+2025-08-11 10:03:45,812 INFO  org.apache.flink.runtime.io.network.netty.NettyServer        [] - Transport type 'auto': using EPOLL.
+2025-08-11 10:03:45,896 INFO  org.apache.flink.runtime.io.network.netty.NettyServer        [] - Successful initialization (took 86 ms). Listening on SocketAddress /127.0.0.1:26203.
+2025-08-11 10:03:45,899 INFO  org.apache.flink.runtime.taskexecutor.KvStateService         [] - Starting the kvState service and its components.
+2025-08-11 10:03:45,923 INFO  org.apache.flink.runtime.rpc.akka.AkkaRpcService             [] - Starting RPC endpoint for org.apache.flink.runtime.taskexecutor.TaskExecutor at akka://flink/user/rpc/taskmanager_0 .
+2025-08-11 10:03:45,941 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Start job leader service.
+2025-08-11 10:03:45,944 INFO  org.apache.flink.runtime.filecache.FileCache                 [] - User file cache uses directory /tmp/flink-dist-cache-268f7103-f38b-4a0e-988a-d076f58642bf
+2025-08-11 10:03:45,948 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Connecting to ResourceManager akka.tcp://flink@localhost:6123/user/rpc/resourcemanager_*(00000000000000000000000000000000).
+2025-08-11 10:03:46,171 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Resolved ResourceManager address, beginning registration
+2025-08-11 10:03:46,287 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Successful registration at resource manager akka.tcp://flink@localhost:6123/user/rpc/resourcemanager_* under registration id 30a039b56eb97a1a4775a2947854c167.
+2025-08-11 10:03:53,119 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Receive slot request ef9ab27ab2ab99aa3e59c091cfe1bb2d for job d6d4f3dc3adfb9a806139b66a9228a67 from resource manager with leader id 00000000000000000000000000000000.
+2025-08-11 10:03:53,126 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Allocated slot for ef9ab27ab2ab99aa3e59c091cfe1bb2d.
+2025-08-11 10:03:53,127 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Add job d6d4f3dc3adfb9a806139b66a9228a67 for job leader monitoring.
+2025-08-11 10:03:53,129 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Try to register at job manager akka.tcp://flink@localhost:6123/user/rpc/jobmanager_2 with leader id 00000000-0000-0000-0000-000000000000.
+2025-08-11 10:03:53,158 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Resolved JobManager address, beginning registration
+2025-08-11 10:03:53,193 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Successful registration at job manager akka.tcp://flink@localhost:6123/user/rpc/jobmanager_2 for job d6d4f3dc3adfb9a806139b66a9228a67.
+2025-08-11 10:03:53,195 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Establish JobManager connection for job d6d4f3dc3adfb9a806139b66a9228a67.
+2025-08-11 10:03:53,197 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Offer reserved slots to the leader of job d6d4f3dc3adfb9a806139b66a9228a67.
+2025-08-11 10:03:53,241 INFO  org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl [] - Activate slot ef9ab27ab2ab99aa3e59c091cfe1bb2d.
+2025-08-11 10:03:53,266 INFO  org.apache.flink.runtime.state.changelog.StateChangelogStorageLoader [] - Creating a changelog storage with name 'memory'.
+2025-08-11 10:03:53,276 INFO  org.apache.flink.runtime.state.TaskExecutorChannelStateExecutorFactoryManager [] - Creating the channel state executor factory for job id d6d4f3dc3adfb9a806139b66a9228a67
+2025-08-11 10:03:53,284 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Received task Source: Cache-Aware Request Source -> Cache-Enabled Inference Processor -> Sink: Result Sink (1/1)#0 (270f94b631b35d25d363608964c465ba_cbc357ccb763df2852fee8c4fc7d55f2_0_0), deploy into slot with allocation id ef9ab27ab2ab99aa3e59c091cfe1bb2d.
+2025-08-11 10:03:53,285 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Source: Cache-Aware Request Source -> Cache-Enabled Inference Processor -> Sink: Result Sink (1/1)#0 (270f94b631b35d25d363608964c465ba_cbc357ccb763df2852fee8c4fc7d55f2_0_0) switched from CREATED to DEPLOYING.
+2025-08-11 10:03:53,287 INFO  org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl [] - Activate slot ef9ab27ab2ab99aa3e59c091cfe1bb2d.
+2025-08-11 10:03:53,291 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Loading JAR files for task Source: Cache-Aware Request Source -> Cache-Enabled Inference Processor -> Sink: Result Sink (1/1)#0 (270f94b631b35d25d363608964c465ba_cbc357ccb763df2852fee8c4fc7d55f2_0_0) [DEPLOYING].
+2025-08-11 10:03:53,295 INFO  org.apache.flink.runtime.blob.BlobClient                     [] - Downloading d6d4f3dc3adfb9a806139b66a9228a67/p-b6480b8b1854eb5f07fb8df22f6a396050a28994-bb3186f083ae235acd0842aebf5fc57a from localhost/127.0.0.1:13765
+2025-08-11 10:03:53,354 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using job/cluster config to configure application-defined state backend: org.apache.flink.runtime.state.hashmap.HashMapStateBackend@12291c62
+2025-08-11 10:03:53,355 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using application-defined state backend: org.apache.flink.runtime.state.hashmap.HashMapStateBackend@63e2ac4f
+2025-08-11 10:03:53,355 INFO  org.apache.flink.runtime.state.StateBackendLoader            [] - State backend loader loads the state backend as HashMapStateBackend
+2025-08-11 10:03:53,360 INFO  org.apache.flink.streaming.runtime.tasks.StreamTask          [] - Using job/cluster config to configure application-defined checkpoint storage: org.apache.flink.runtime.state.storage.FileSystemCheckpointStorage@200dd9d5
+2025-08-11 10:03:53,373 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Source: Cache-Aware Request Source -> Cache-Enabled Inference Processor -> Sink: Result Sink (1/1)#0 (270f94b631b35d25d363608964c465ba_cbc357ccb763df2852fee8c4fc7d55f2_0_0) switched from DEPLOYING to INITIALIZING.
+2025-08-11 10:03:53,487 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - 启动二级缓存推理服务 (策略=FLUID, 初始大小=5)
+2025-08-11 10:03:53,487 INFO  com.infertuner.cache.TwoLevelCacheManager                    [] - 初始化二级缓存管理器，本地缓存大小: 5
+2025-08-11 10:03:58,609 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - 二级缓存推理服务已启动
+2025-08-11 10:03:58,614 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Source: Cache-Aware Request Source -> Cache-Enabled Inference Processor -> Sink: Result Sink (1/1)#0 (270f94b631b35d25d363608964c465ba_cbc357ccb763df2852fee8c4fc7d55f2_0_0) switched from INITIALIZING to RUNNING.
+2025-08-11 10:03:58,620 INFO  com.infertuner.sources.CacheAwareRequestSource               [] - 开始生成优化负载请求流，总数: 80
+2025-08-11 10:04:00,847 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_000] 未命中: 2134.19ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:00,848 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #1 ===
+2025-08-11 10:04:00,848 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_000 | 用户: user_001
+2025-08-11 10:04:00,848 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何评估模型质量？
+2025-08-11 10:04:00,848 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 评估模型的质量通常涉及以下几个方面：
+
+1. 准确性：准确性是评估模型性能的最基本指标，它衡量的是模型预测结果与真实值之间的差异程度。可以通过计算模型在测试集上...
+2025-08-11 10:04:00,848 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 2134.2ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:00,849 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:00,849 INFO  com.infertuner.sources.CacheAwareRequestSource               [] - 负载阶段: 高度集中访问 | 活跃用户: 3个 | 每用户session: 1 | 请求间隔: 150ms | 进度: 1/80
+2025-08-11 10:04:01,660 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_001] 命中: 657.18ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:01,660 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #2 ===
+2025-08-11 10:04:01,660 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_001 | 用户: user_001
+2025-08-11 10:04:01,660 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:04:01,661 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 优化模型性能需要从多个方面考虑，以下是一些常见的方法：
+
+1. 数据预处理：数据预处理是提高模型性能的第一步，包括数据清洗、特征选择和特征缩放等。首先，通过清理...
+2025-08-11 10:04:01,661 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 657.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:01,661 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:03,766 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_002] 未命中: 1901.65ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:03,766 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #3 ===
+2025-08-11 10:04:03,767 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_002 | 用户: user_003
+2025-08-11 10:04:03,767 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是机器学习？
+2025-08-11 10:04:03,767 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 机器学习是一种人工智能技术，它允许计算机系统从数据中自动学习规律和模式，并从中提取知识，以便能够完成特定任务或解决复杂问题。它的基本思想是通过大量训练数据集来构...
+2025-08-11 10:04:03,767 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1901.7ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:03,767 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:04,658 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_003] 命中: 739.15ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:04,659 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #4 ===
+2025-08-11 10:04:04,659 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_003 | 用户: user_001
+2025-08-11 10:04:04,659 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:04:04,659 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 优化模型性能通常涉及以下几个步骤：
+
+1. 数据预处理：对数据进行清洗、归一化和标准化，以便于后续的特征工程和模型训练。例如，如果数据存在缺失值或异常值，可以使...
+2025-08-11 10:04:04,660 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 739.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:04,660 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:05,637 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_004] 命中: 824.62ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:05,637 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #5 ===
+2025-08-11 10:04:05,637 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_004 | 用户: user_001
+2025-08-11 10:04:05,637 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是机器学习？
+2025-08-11 10:04:05,638 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 机器学习是一种人工智能技术，它让计算机系统能够自动从数据中学习和改进，而不需要明确编程。它通过分析和使用大量的历史数据来发现模式、规律和关联，并利用这些信息来做...
+2025-08-11 10:04:05,638 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 824.6ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:05,638 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:04:05,638 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 5 | 成功: 5 (100.0%) | 平均耗时: 1251.4ms
+2025-08-11 10:04:05,638 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:06,584 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_005] 命中: 792.85ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:06,584 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #6 ===
+2025-08-11 10:04:06,584 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_005 | 用户: user_001
+2025-08-11 10:04:06,584 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是迁移学习？
+2025-08-11 10:04:06,585 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 迁移学习（Transfer Learning，简称TL）是一种机器学习技术，它允许在没有显式训练数据的情况下，利用已有的知识和经验来解决新的任务。它的基本思想是...
+2025-08-11 10:04:06,585 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 792.9ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:06,585 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:07,306 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_006] 命中: 568.98ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:07,307 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #7 ===
+2025-08-11 10:04:07,307 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_006 | 用户: user_001
+2025-08-11 10:04:07,307 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何评估模型质量？
+2025-08-11 10:04:07,307 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 评估模型质量可以使用多种方法，以下是一些常用的评估指标：
+
+1. 准确率（Accuracy）：这是评估分类或回归模型性能的主要指标。准确率指的是模型正确预测的样...
+2025-08-11 10:04:07,307 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 569.0ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:07,308 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:08,337 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_007] 命中: 877.12ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:08,337 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #8 ===
+2025-08-11 10:04:08,337 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_007 | 用户: user_001
+2025-08-11 10:04:08,338 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:04:08,338 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: “大语言模型”是一种人工智能技术，它能够根据给定的文本或指令，生成与之相关的文本或指令。它的主要目标是模拟人类的语言理解和生成能力，从而实现自然语言处理任务，如...
+2025-08-11 10:04:08,338 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 877.1ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:08,338 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:09,412 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_008] 命中: 921.93ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:09,412 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #9 ===
+2025-08-11 10:04:09,413 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_008 | 用户: user_001
+2025-08-11 10:04:09,413 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 解释一下Transformer架构
+2025-08-11 10:04:09,413 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: Transformer是一种深度学习模型，由NVIDIA公司于2017年提出。它最初被用于自然语言处理（NLP）任务，例如机器翻译、文本摘要和问答系统等。Tra...
+2025-08-11 10:04:09,413 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 921.9ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:09,414 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:10,248 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_009] 命中: 682.26ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:10,249 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #10 ===
+2025-08-11 10:04:10,249 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_009 | 用户: user_001
+2025-08-11 10:04:10,249 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:04:10,249 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 大语言模型是一种能够模拟人类自然语言处理任务的计算机程序，它利用深度学习技术来理解和生成自然语言文本。它的主要功能包括回答问题、提供建议、生成代码、写故事、创作...
+2025-08-11 10:04:10,249 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 682.3ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:10,250 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:04:10,250 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 10 | 成功: 10 (100.0%) | 平均耗时: 1010.0ms
+2025-08-11 10:04:10,250 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:11,098 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_010] 命中: 695.45ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:11,098 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #11 ===
+2025-08-11 10:04:11,099 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_010 | 用户: user_001
+2025-08-11 10:04:11,099 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是过拟合？
+2025-08-11 10:04:11,099 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 过拟合是指机器学习模型在训练数据集上表现良好，但在测试数据集上的表现却较差的现象。它通常发生在机器学习算法中，当模型过于复杂或参数过多时，会导致模型对训练数据过...
+2025-08-11 10:04:11,099 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 695.5ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:11,099 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:12,061 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_011] 命中: 810.09ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:12,062 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #12 ===
+2025-08-11 10:04:12,062 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_011 | 用户: user_001
+2025-08-11 10:04:12,062 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是过拟合？
+2025-08-11 10:04:12,062 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 过拟合（Overfitting）是指在机器学习模型中，模型对训练数据的拟合程度过高，导致它对于新数据的泛化能力较差的现象。简单来说，过拟合是指模型在训练集上表现...
+2025-08-11 10:04:12,062 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 810.1ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:12,063 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:13,922 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_012] 未命中: 1656.88ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:13,922 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #13 ===
+2025-08-11 10:04:13,923 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_012 | 用户: user_008
+2025-08-11 10:04:13,923 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 解释一下Transformer架构
+2025-08-11 10:04:13,923 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: Transformer是一种深度学习模型，它是近年来神经网络领域的一项重要成果，由Christopher P. Hinton等人在2017年提出。Transfo...
+2025-08-11 10:04:13,923 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1656.9ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:13,923 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:13,923 INFO  com.infertuner.sources.CacheAwareRequestSource               [] - 负载阶段: 中等分散访问 | 活跃用户: 8个 | 每用户session: 2 | 请求间隔: 150ms | 进度: 13/80
+2025-08-11 10:04:14,690 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_013] 命中: 614.67ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:14,691 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #14 ===
+2025-08-11 10:04:14,691 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_013 | 用户: user_003
+2025-08-11 10:04:14,691 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是迁移学习？
+2025-08-11 10:04:14,691 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 迁移学习是一种机器学习技术，它允许模型在新的数据集上从一个已知的数据集中提取知识，并将其应用到新任务中。这种方法通过利用预训练的模型和特征表示，在较短的时间内将...
+2025-08-11 10:04:14,691 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 614.7ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:14,691 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:14,845 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - FLUID调整检查: 当前速率=1.14, 历史均值=1.04, 扩容阈值=1.41, 缩容阈值=0.68, 当前缓存=5
+2025-08-11 10:04:15,844 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_014] 命中: 997.4ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:15,844 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #15 ===
+2025-08-11 10:04:15,845 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_014 | 用户: user_008
+2025-08-11 10:04:15,845 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是迁移学习？
+2025-08-11 10:04:15,845 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 迁移学习（Transfer Learning，简称TL）是一种机器学习技术，它利用已有的大型预训练模型，将这些模型的结构、特征和结果转换到新的任务中，从而实现模...
+2025-08-11 10:04:15,845 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 997.4ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:15,846 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:04:15,846 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 15 | 成功: 15 (100.0%) | 平均耗时: 991.6ms
+2025-08-11 10:04:15,846 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:17,606 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_015] 未命中: 1555.46ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:17,607 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #16 ===
+2025-08-11 10:04:17,608 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_015 | 用户: user_007
+2025-08-11 10:04:17,608 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:04:17,608 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 大语言模型，也被称为深度学习语言模型，是一种计算机程序或算法，其目标是通过训练来模拟人类的自然语言处理（NLP）能力，从而能够理解和生成人类语言。这种模型通常使...
+2025-08-11 10:04:17,608 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1555.5ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:17,608 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:19,419 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_016] 未命中: 1608.83ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:19,420 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #17 ===
+2025-08-11 10:04:19,420 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_016 | 用户: user_005
+2025-08-11 10:04:19,420 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:04:19,420 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 大语言模型是一种能够理解、生成和模拟人类自然语言的计算机程序。它使用深度学习技术，包括神经网络和统计机器翻译（SMT），来处理和分析文本数据，并从中提取有意义的...
+2025-08-11 10:04:19,420 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1608.8ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:19,420 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:20,384 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_017] 命中: 811.5ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:20,384 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #18 ===
+2025-08-11 10:04:20,384 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_017 | 用户: user_007
+2025-08-11 10:04:20,384 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是迁移学习？
+2025-08-11 10:04:20,385 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 迁移学习（Transfer Learning，简称TL）是一种机器学习技术，它借鉴和利用已有的知识或经验来解决新的问题。在计算机科学中，迁移学习主要应用于深度学...
+2025-08-11 10:04:20,385 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 811.5ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:20,385 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:21,140 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_018] 命中: 602.99ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:21,140 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #19 ===
+2025-08-11 10:04:21,140 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_018 | 用户: user_007
+2025-08-11 10:04:21,140 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:04:21,140 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 优化模型性能通常需要从多个方面进行考虑，以下是一些常见的方法：
+
+1. 数据预处理：在训练模型之前，对数据进行清洗、标准化或归一化等操作，以提高模型的泛化能力。...
+2025-08-11 10:04:21,141 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 603.0ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:21,141 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:23,057 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_019] 未命中: 1713.63ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:23,057 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #20 ===
+2025-08-11 10:04:23,058 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_019 | 用户: user_006
+2025-08-11 10:04:23,058 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:04:23,058 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 要优化模型性能，可以采取以下步骤：
+
+1. 数据预处理：首先，对训练数据进行清洗、归一化和特征工程。这包括去除噪声、缺失值、异常值等，以及将文本、图像或其他类型...
+2025-08-11 10:04:23,058 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1713.6ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:23,058 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:04:23,058 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 20 | 成功: 20 (100.0%) | 平均耗时: 1058.3ms
+2025-08-11 10:04:23,058 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:23,901 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_020] 命中: 691.11ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:23,902 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #21 ===
+2025-08-11 10:04:23,902 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_020 | 用户: user_006
+2025-08-11 10:04:23,902 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是机器学习？
+2025-08-11 10:04:23,902 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 机器学习是一种人工智能的分支，它利用计算机算法和统计模型从数据中自动学习规律，并通过分析、挖掘和改进现有数据集中的模式和趋势，从而实现对未知数据的预测和决策。它...
+2025-08-11 10:04:23,902 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 691.1ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:23,902 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:25,770 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_021] 未命中: 1665.38ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:25,770 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #22 ===
+2025-08-11 10:04:25,771 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_021 | 用户: user_004
+2025-08-11 10:04:25,771 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是迁移学习？
+2025-08-11 10:04:25,771 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 迁移学习（Transfer Learning，简称TL）是一种机器学习技术，它允许一个模型在新的任务上应用其在训练数据集上已学到的知识和结构，而无需重新从头开始...
+2025-08-11 10:04:25,771 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1665.4ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:25,771 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:26,765 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_022] 命中: 841.69ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:26,765 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #23 ===
+2025-08-11 10:04:26,765 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_022 | 用户: user_008
+2025-08-11 10:04:26,765 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是机器学习？
+2025-08-11 10:04:26,766 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 机器学习是一种人工智能（AI）分支，它使用统计模型和算法来让计算机从数据中自动学习规律，并根据这些规律进行预测或决策。在机器学习中，计算机系统通过分析大量历史数...
+2025-08-11 10:04:26,766 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 841.7ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:26,766 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:27,510 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_023] 命中: 592.23ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:27,511 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #24 ===
+2025-08-11 10:04:27,511 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_023 | 用户: user_006
+2025-08-11 10:04:27,511 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是注意力机制？
+2025-08-11 10:04:27,511 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 注意力机制是一种计算机科学中的技术，用于确定和跟踪输入数据的焦点或集中点。它通过将输入数据分成多个子块，并为每个子块分配一个优先级来实现这一目的。
+
+在自然语言...
+2025-08-11 10:04:27,511 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 592.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:27,511 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:28,280 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_024] 命中: 617.18ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:28,281 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #25 ===
+2025-08-11 10:04:28,281 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_024 | 用户: user_004
+2025-08-11 10:04:28,281 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是过拟合？
+2025-08-11 10:04:28,281 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 过拟合（Overfitting）是指模型在训练数据集上表现良好，但在未见过的数据集上表现较差的现象。简单来说，过拟合就是模型在学习到训练数据的特定模式时过于复杂...
+2025-08-11 10:04:28,281 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 617.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:28,281 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:04:28,281 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 25 | 成功: 25 (100.0%) | 平均耗时: 1023.0ms
+2025-08-11 10:04:28,281 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:28,281 INFO  com.infertuner.sources.CacheAwareRequestSource               [] - 负载阶段: 中等分散访问 | 活跃用户: 8个 | 每用户session: 2 | 请求间隔: 150ms | 进度: 25/80
+2025-08-11 10:04:29,300 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_025] 命中: 816.77ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:29,301 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #26 ===
+2025-08-11 10:04:29,301 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_025 | 用户: user_001
+2025-08-11 10:04:29,301 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是过拟合？
+2025-08-11 10:04:29,301 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 过拟合是指模型在训练数据上表现良好，但在测试数据上的表现较差的现象。在机器学习和深度学习中，过拟合是一个常见的问题，特别是在训练数据集非常大的情况下，模型可能过...
+2025-08-11 10:04:29,302 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 816.8ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:29,302 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:30,169 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_026] 命中: 714.58ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:30,169 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #27 ===
+2025-08-11 10:04:30,169 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_026 | 用户: user_007
+2025-08-11 10:04:30,169 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:04:30,169 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: “大语言模型”是指能够理解和生成人类语言的计算机程序或系统，它们可以使用自然语言处理（NLP）和深度学习技术来模拟人类语言的语义、语法和风格。这些模型通常包括以...
+2025-08-11 10:04:30,170 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 714.6ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:30,170 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:31,146 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_027] 命中: 824.45ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:31,146 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #28 ===
+2025-08-11 10:04:31,147 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_027 | 用户: user_004
+2025-08-11 10:04:31,147 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是过拟合？
+2025-08-11 10:04:31,147 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 过拟合（Overfitting）是指在训练机器学习模型时，模型过度适应了训练数据集中的噪声和特征，而无法很好地泛化到新的、未见过的数据集上。换句话说，模型过于复...
+2025-08-11 10:04:31,147 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 824.5ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:31,147 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:33,187 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_028] 未命中: 1837.38ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:33,187 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #29 ===
+2025-08-11 10:04:33,187 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_028 | 用户: user_023
+2025-08-11 10:04:33,187 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是注意力机制？
+2025-08-11 10:04:33,187 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 注意力机制（Attention Mechanism）是一种计算机科学中的研究方法，用于处理复杂多维数据和任务，并在多个输入之间进行有效的信息过滤、融合和记忆。它...
+2025-08-11 10:04:33,188 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1837.4ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:33,188 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:33,339 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - FLUID调整检查: 当前速率=0.98, 历史均值=1.02, 扩容阈值=1.38, 缩容阈值=0.67, 当前缓存=5
+2025-08-11 10:04:35,009 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_029] 未命中: 1618.0ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:35,009 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #30 ===
+2025-08-11 10:04:35,009 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_029 | 用户: user_020
+2025-08-11 10:04:35,009 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:04:35,009 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: “大语言模型”通常是指使用深度学习技术，以处理和生成自然语言文本的计算机程序。它们通常由大规模的神经网络结构组成，包括多个隐藏层、多任务训练和大量的语料库，用于...
+2025-08-11 10:04:35,009 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1618.0ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:35,010 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:04:35,010 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 30 | 成功: 30 (100.0%) | 平均耗时: 1046.2ms
+2025-08-11 10:04:35,010 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:35,971 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_030] 命中: 759.83ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:35,972 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #31 ===
+2025-08-11 10:04:35,972 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_030 | 用户: user_008
+2025-08-11 10:04:35,972 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:04:35,972 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: “大语言模型”（也称为深度学习模型）是一种人工智能系统，它使用大量的自然语言文本数据进行训练和学习，从而能够理解和生成人类的自然语言。这些模型通常由多个层次组成...
+2025-08-11 10:04:35,972 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 759.8ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:35,972 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:37,137 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_031] 命中: 962.21ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:37,137 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #32 ===
+2025-08-11 10:04:37,137 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_031 | 用户: user_001
+2025-08-11 10:04:37,137 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:04:37,137 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: “大语言模型”是一种人工智能技术，它能够理解和生成人类语言。它的主要目标是模拟人类的自然语言处理能力，以便在计算机程序中实现自动文本生成、问答系统、聊天机器人、...
+2025-08-11 10:04:37,137 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 962.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:37,137 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:37,890 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_032] 命中: 550.69ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:37,890 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #33 ===
+2025-08-11 10:04:37,890 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_032 | 用户: user_005
+2025-08-11 10:04:37,890 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是机器学习？
+2025-08-11 10:04:37,890 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 机器学习是一种人工智能技术，它利用统计模型和算法从数据中自动提取规律和模式，并通过模拟人类的智能行为来实现任务，从而实现自动化的决策过程。它主要分为监督学习、无...
+2025-08-11 10:04:37,890 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 550.7ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:37,890 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:38,770 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_033] 命中: 677.31ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:38,770 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #34 ===
+2025-08-11 10:04:38,770 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_033 | 用户: user_004
+2025-08-11 10:04:38,770 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 深度学习的基本原理是什么？
+2025-08-11 10:04:38,770 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 深度学习是一种机器学习技术，它通过多层神经网络模型来模拟人脑的高级认知过程。它的基本原理是基于反向传播算法，该算法用于从输入数据中学习权重参数，以最小化预测输出...
+2025-08-11 10:04:38,771 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 677.3ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:38,771 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:40,843 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_034] 未命中: 1869.55ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:40,843 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #35 ===
+2025-08-11 10:04:40,843 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_034 | 用户: user_021
+2025-08-11 10:04:40,843 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:04:40,843 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 优化模型性能可以通过以下几种方式来实现：
+
+1. 数据预处理：首先，对数据进行清洗和预处理，包括缺失值处理、异常值检测和归一化等。这可以提高数据的质量和准确性，...
+2025-08-11 10:04:40,843 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1869.6ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:40,843 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:04:40,844 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 35 | 成功: 35 (100.0%) | 平均耗时: 1034.4ms
+2025-08-11 10:04:40,844 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:41,623 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_035] 命中: 577.21ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:41,623 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #36 ===
+2025-08-11 10:04:41,623 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_035 | 用户: user_006
+2025-08-11 10:04:41,623 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:04:41,623 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 优化模型性能通常包括以下几个步骤：
+
+1. 数据预处理：首先，需要对原始数据进行清洗和预处理，包括去除无效值、异常值、缺失值等。这一步骤可以提高数据质量和减少后...
+2025-08-11 10:04:41,624 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 577.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:41,624 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:42,373 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_036] 命中: 597.27ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:42,373 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #37 ===
+2025-08-11 10:04:42,373 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_036 | 用户: user_004
+2025-08-11 10:04:42,373 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:04:42,373 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 大语言模型（Large Language Model，简称LLM）是一种人工智能技术，它能够理解和生成人类自然语言，具有自我学习和适应能力，可以处理复杂多义的语...
+2025-08-11 10:04:42,373 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 597.3ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:42,373 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:42,373 INFO  com.infertuner.sources.CacheAwareRequestSource               [] - 负载阶段: 高度分散访问 | 活跃用户: 25个 | 每用户session: 3 | 请求间隔: 150ms | 进度: 37/80
+2025-08-11 10:04:44,324 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_037] 未命中: 1747.99ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:44,324 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #38 ===
+2025-08-11 10:04:44,324 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_037 | 用户: user_009
+2025-08-11 10:04:44,324 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 深度学习的基本原理是什么？
+2025-08-11 10:04:44,324 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 深度学习是一种机器学习技术，它基于多层神经网络来模拟人脑的处理过程，从而实现对大量数据的自动分析和学习。它的基本原理可以概括为以下几个步骤：
+
+1. 数据预处理...
+2025-08-11 10:04:44,324 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1748.0ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:44,325 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:45,404 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_038] 命中: 927.82ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:45,405 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #39 ===
+2025-08-11 10:04:45,405 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_038 | 用户: user_009
+2025-08-11 10:04:45,405 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何评估模型质量？
+2025-08-11 10:04:45,405 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 评估模型的质量可以从以下几个方面进行：
+
+1. 准确率：这是衡量模型预测结果与实际结果之间差异的最直接指标。准确率越高，说明模型在处理给定数据时越有效。通常情况...
+2025-08-11 10:04:45,405 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 927.8ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:45,405 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:47,184 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_039] 未命中: 1576.54ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:47,185 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #40 ===
+2025-08-11 10:04:47,185 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_039 | 用户: user_002
+2025-08-11 10:04:47,185 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:04:47,185 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 优化模型性能通常涉及以下几个步骤：
+
+1. 数据预处理：首先，对原始数据进行清洗和预处理。这可能包括删除缺失值、异常值、重复值等，并将文本数据转换为数值特征或使...
+2025-08-11 10:04:47,185 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1576.5ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:47,185 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:04:47,185 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 40 | 成功: 40 (100.0%) | 平均耗时: 1040.8ms
+2025-08-11 10:04:47,185 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:49,377 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_040] 未命中: 1989.33ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:49,378 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #41 ===
+2025-08-11 10:04:49,378 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_040 | 用户: user_025
+2025-08-11 10:04:49,378 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是注意力机制？
+2025-08-11 10:04:49,378 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 注意力机制是计算机视觉、自然语言处理和机器学习等领域中的一个重要概念，它用于在多任务环境下处理信息时保持并优化注意力分配。以下是注意力机制的基本原理：
+
+1. ...
+2025-08-11 10:04:49,378 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1989.3ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:49,378 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:50,107 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_041] 命中: 525.81ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:50,107 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #42 ===
+2025-08-11 10:04:50,107 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_041 | 用户: user_007
+2025-08-11 10:04:50,107 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是过拟合？
+2025-08-11 10:04:50,107 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 过拟合（Overfitting）是指机器学习模型在训练数据上表现良好，但在未见过的新数据上表现较差的现象。这是因为模型过度适应了训练数据中的特征和模式，而忽略了...
+2025-08-11 10:04:50,107 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 525.8ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:50,107 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:50,902 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_042] 命中: 643.04ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:50,903 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #43 ===
+2025-08-11 10:04:50,903 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_042 | 用户: user_009
+2025-08-11 10:04:50,903 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是迁移学习？
+2025-08-11 10:04:50,903 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 迁移学习（Transfer Learning，简称TL）是一种机器学习技术，它利用已有的、经过训练的模型或知识库来解决新的问题或任务。它的基本思想是将一个特定领...
+2025-08-11 10:04:50,904 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 643.0ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:50,904 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:53,060 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_043] 未命中: 1953.4ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:53,060 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #44 ===
+2025-08-11 10:04:53,060 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_043 | 用户: user_010
+2025-08-11 10:04:53,060 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是注意力机制？
+2025-08-11 10:04:53,060 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 注意力机制是一种计算机科学中的算法，用于跟踪和处理输入数据中的关键信息或焦点。它通过在神经网络中建立一个权重矩阵来确定哪些输入应该被更频繁地关注和处理。
+
+以下...
+2025-08-11 10:04:53,061 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1953.4ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:53,061 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:53,212 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - FLUID调整检查: 当前速率=1.02, 历史均值=1.02, 扩容阈值=1.38, 缩容阈值=0.66, 当前缓存=5
+2025-08-11 10:04:53,735 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_044] 命中: 522.1ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:53,735 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #45 ===
+2025-08-11 10:04:53,735 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_044 | 用户: user_010
+2025-08-11 10:04:53,735 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是注意力机制？
+2025-08-11 10:04:53,735 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 注意力机制（Attention Mechanism）是深度学习中的一种重要技术，用于处理大量特征输入，以提取出与输入相关的、最相关的信息。它主要由以下几个组件构...
+2025-08-11 10:04:53,735 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 522.1ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:04:53,736 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:04:53,736 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 45 | 成功: 45 (100.0%) | 平均耗时: 1050.3ms
+2025-08-11 10:04:53,736 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:55,483 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_045] 未命中: 1594.4ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:55,483 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #46 ===
+2025-08-11 10:04:55,483 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_045 | 用户: user_031
+2025-08-11 10:04:55,483 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 神经网络如何工作？
+2025-08-11 10:04:55,483 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 神经网络是一种模仿人类大脑的计算模型，它通过一系列的节点（称为神经元）和连接线来实现信息处理和模式识别。以下是神经网络工作的基本步骤：
+
+1. **输入**：神...
+2025-08-11 10:04:55,483 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1594.4ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:55,483 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:57,504 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_046] 未命中: 1868.98ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:57,504 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #47 ===
+2025-08-11 10:04:57,504 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_046 | 用户: user_039
+2025-08-11 10:04:57,505 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是迁移学习？
+2025-08-11 10:04:57,505 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 迁移学习（Transfer Learning，简称TL）是一种机器学习技术，它将一种特定领域的知识或经验从一个训练集迁移到另一个领域，从而在新领域中实现更好的性...
+2025-08-11 10:04:57,505 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1869.0ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:57,505 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:04:59,246 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_047] 未命中: 1588.92ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:04:59,246 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #48 ===
+2025-08-11 10:04:59,246 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_047 | 用户: user_037
+2025-08-11 10:04:59,246 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:04:59,246 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 为了优化模型性能，可以采取以下几种方法：
+
+1. 数据预处理：对输入数据进行清洗、归一化和标准化等操作，以确保输入数据的准确性、一致性和可比较性。这有助于减少特...
+2025-08-11 10:04:59,246 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1588.9ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:04:59,246 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:01,207 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_048] 未命中: 1807.9ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:01,207 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #49 ===
+2025-08-11 10:05:01,207 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_048 | 用户: user_015
+2025-08-11 10:05:01,207 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 神经网络如何工作？
+2025-08-11 10:05:01,207 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 神经网络是一种基于人类大脑学习原理的计算机模型，它由一系列相互连接的节点组成，每个节点都代表一种抽象的数据特征或属性。神经网络的工作过程主要包括以下步骤：
+
+1...
+2025-08-11 10:05:01,207 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1807.9ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:05:01,207 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:01,207 INFO  com.infertuner.sources.CacheAwareRequestSource               [] - 负载阶段: 混乱访问模式 | 活跃用户: 40个 | 每用户session: 随机1-5 | 请求间隔: 100ms | 进度: 49/80
+2025-08-11 10:05:01,918 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_049] 命中: 558.54ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:01,918 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #50 ===
+2025-08-11 10:05:01,918 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_049 | 用户: user_003
+2025-08-11 10:05:01,918 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 神经网络如何工作？
+2025-08-11 10:05:01,918 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 神经网络是一种模仿人脑中神经元之间相互连接和传递信息的计算模型。它的基本结构由多层神经元组成，每一层神经元都会接收来自上一层神经元的输入，并通过激活函数（如si...
+2025-08-11 10:05:01,918 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 558.5ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:01,918 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:05:01,918 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 50 | 成功: 50 (100.0%) | 平均耗时: 1093.7ms
+2025-08-11 10:05:01,918 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:02,738 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_050] 命中: 717.85ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:02,738 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #51 ===
+2025-08-11 10:05:02,738 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_050 | 用户: user_031
+2025-08-11 10:05:02,738 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:05:02,738 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: “大语言模型”是指能够理解和生成人类自然语言的计算机程序。它们通常由大量的语料库、神经网络和深度学习算法组成，可以用来回答问题、提供建议、创作文本、翻译文本、聊...
+2025-08-11 10:05:02,738 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 717.9ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:02,738 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:03,415 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_051] 命中: 524.61ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:03,415 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #52 ===
+2025-08-11 10:05:03,415 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_051 | 用户: user_023
+2025-08-11 10:05:03,415 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 解释一下Transformer架构
+2025-08-11 10:05:03,415 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: Transformer是一种深度学习模型，主要用于自然语言处理（NLP）任务，例如机器翻译、问答系统、文本摘要等。它是由Google在2017年提出的一种新的T...
+2025-08-11 10:05:03,415 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 524.6ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:03,416 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:05,302 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_052] 未命中: 1734.1599999999999ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:05,302 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #53 ===
+2025-08-11 10:05:05,302 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_052 | 用户: user_027
+2025-08-11 10:05:05,302 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:05:05,302 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 优化模型性能可以从以下几个方面入手：
+
+1. 数据预处理：对训练数据进行清洗和标准化，以确保每个特征都有相同的尺度和范围。这一步骤可以提高模型的泛化能力，减少过...
+2025-08-11 10:05:05,302 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1734.2ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:05:05,302 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:07,054 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_053] 未命中: 1599.5700000000002ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:07,054 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #54 ===
+2025-08-11 10:05:07,054 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_053 | 用户: user_014
+2025-08-11 10:05:07,054 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:05:07,054 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 为了优化模型性能，可以采取以下几种方法：
+
+1. 数据预处理：首先需要对原始数据进行清洗、归一化、标准化等操作，以减少噪声和提高数据质量。例如，可以通过将文本转...
+2025-08-11 10:05:07,054 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1599.6ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:05:07,054 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:07,861 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_054] 命中: 654.69ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:07,861 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #55 ===
+2025-08-11 10:05:07,861 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_054 | 用户: user_015
+2025-08-11 10:05:07,861 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是迁移学习？
+2025-08-11 10:05:07,861 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 迁移学习是一种机器学习技术，它允许一个模型在新的任务上从先前的任务中学习到的知识和特征，而无需重新构建整个模型。换句话说，它利用已经训练好的模型的参数和结构，以...
+2025-08-11 10:05:07,861 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 654.7ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:07,861 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:05:07,861 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 55 | 成功: 55 (100.0%) | 平均耗时: 1089.4ms
+2025-08-11 10:05:07,861 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:08,802 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_055] 命中: 839.43ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:08,803 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #56 ===
+2025-08-11 10:05:08,803 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_055 | 用户: user_031
+2025-08-11 10:05:08,803 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 神经网络如何工作？
+2025-08-11 10:05:08,803 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 神经网络是一种模仿人脑神经元之间连接和处理信息的计算模型。它由大量节点（或称为“神经元”）组成，每个节点都包含一个权重参数，以及一些输入和输出的连接，用于将输入...
+2025-08-11 10:05:08,803 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 839.4ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:08,803 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:10,908 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_056] 未命中: 1952.6799999999998ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:10,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #57 ===
+2025-08-11 10:05:10,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_056 | 用户: user_035
+2025-08-11 10:05:10,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:05:10,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 要优化模型性能，以下是一些常见的方法：
+
+1. **数据预处理**：在训练模型之前，需要对原始数据进行预处理。这包括数据清洗、缺失值填充、异常值处理、标准化或归...
+2025-08-11 10:05:10,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1952.7ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:05:10,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:12,908 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_057] 未命中: 1847.25ms (+1000ms) (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:12,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #58 ===
+2025-08-11 10:05:12,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_057 | 用户: user_013
+2025-08-11 10:05:12,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是过拟合？
+2025-08-11 10:05:12,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 过拟合（Overfitting）是指在训练数据集上，机器学习模型过于复杂，以至于它过度地适应了训练数据中的噪声和异常值，而对新的、未见过的数据表现不佳。简单来说...
+2025-08-11 10:05:12,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 1847.3ms | 模型: Qwen1.5-1.8B-Chat-Miss
+2025-08-11 10:05:12,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:13,908 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_058] 命中: 847.92ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:13,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #59 ===
+2025-08-11 10:05:13,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_058 | 用户: user_005
+2025-08-11 10:05:13,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:05:13,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 优化模型性能需要综合考虑多种因素，包括但不限于以下几个方面：
+
+1. 数据预处理：对原始数据进行清洗、整合和标准化，以确保模型能够正确地学习到数据的特征。例如，...
+2025-08-11 10:05:13,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 847.9ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:13,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:14,009 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - FLUID调整检查: 当前速率=1.00, 历史均值=1.01, 扩容阈值=1.37, 缩容阈值=0.66, 当前缓存=5
+2025-08-11 10:05:14,531 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_059] 命中: 520.28ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:14,531 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #60 ===
+2025-08-11 10:05:14,531 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_059 | 用户: user_035
+2025-08-11 10:05:14,531 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何评估模型质量？
+2025-08-11 10:05:14,531 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 评估模型质量通常涉及以下几个方面：
+
+1. 模型性能：首先，要评估模型的性能指标。这可能包括准确性、精确度、召回率、F1分数、AUC值、均方误差等。这些指标可以...
+2025-08-11 10:05:14,531 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 520.3ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:14,531 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:05:14,531 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 60 | 成功: 60 (100.0%) | 平均耗时: 1098.7ms
+2025-08-11 10:05:14,531 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:15,394 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_060] 命中: 711.39ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:15,395 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #61 ===
+2025-08-11 10:05:15,395 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_060 | 用户: user_001
+2025-08-11 10:05:15,395 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 神经网络如何工作？
+2025-08-11 10:05:15,395 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 神经网络是一种模仿人脑神经元功能的计算模型，它通过一系列复杂的节点（称为“神经元”或“节点层”）和连接（称为“连接层”或“隐藏层”），将输入数据映射到输出结果。...
+2025-08-11 10:05:15,395 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 711.4ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:15,395 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:15,395 INFO  com.infertuner.sources.CacheAwareRequestSource               [] - 负载阶段: 回归集中访问 | 活跃用户: 5个 | 每用户session: 1 | 请求间隔: 100ms | 进度: 61/80
+2025-08-11 10:05:16,200 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_061] 命中: 703.18ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:16,200 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #62 ===
+2025-08-11 10:05:16,200 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_061 | 用户: user_001
+2025-08-11 10:05:16,200 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 深度学习的基本原理是什么？
+2025-08-11 10:05:16,200 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 深度学习是一种机器学习技术，它通过构建多层神经网络来模拟人脑的神经元，以实现对大量数据的学习和分析。它的基本原理包括以下几点：
+
+1. **多层结构**：深度学...
+2025-08-11 10:05:16,200 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 703.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:16,200 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:17,340 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_062] 命中: 988.52ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:17,341 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #63 ===
+2025-08-11 10:05:17,341 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_062 | 用户: user_002
+2025-08-11 10:05:17,341 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 神经网络如何工作？
+2025-08-11 10:05:17,341 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 神经网络是一种模仿生物神经系统结构和功能的计算模型，它由多个相互连接的节点（也称为“神经元”或“节点单元”）组成，每个节点接收来自其他节点的信息，并通过一系列复...
+2025-08-11 10:05:17,341 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 988.5ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:17,341 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:18,299 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_063] 命中: 856.18ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:18,299 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #64 ===
+2025-08-11 10:05:18,299 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_063 | 用户: user_002
+2025-08-11 10:05:18,299 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是迁移学习？
+2025-08-11 10:05:18,299 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 迁移学习是一种机器学习技术，它允许模型在不同任务之间转移其知识和技能。它的主要目标是通过将一个已知的、具有特定特性的任务迁移到另一个任务中，来解决新的、具有不同...
+2025-08-11 10:05:18,299 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 856.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:18,299 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:18,978 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_064] 命中: 577.03ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:18,978 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #65 ===
+2025-08-11 10:05:18,978 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_064 | 用户: user_002
+2025-08-11 10:05:18,978 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是注意力机制？
+2025-08-11 10:05:18,978 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 注意力机制（Attention Mechanism）是一种计算机视觉和自然语言处理技术，用于将输入的图像或文本数据分解成多个部分，并确定每个部分对目标信息的关注...
+2025-08-11 10:05:18,978 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 577.0ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:18,978 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:05:18,978 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 65 | 成功: 65 (100.0%) | 平均耗时: 1073.2ms
+2025-08-11 10:05:18,979 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:20,048 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_065] 命中: 967.45ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:20,048 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #66 ===
+2025-08-11 10:05:20,048 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_065 | 用户: user_001
+2025-08-11 10:05:20,048 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是迁移学习？
+2025-08-11 10:05:20,048 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 迁移学习是一种机器学习技术，它利用已有的知识和经验来解决新的、具有不同输入特征的任务。它的基本思想是将一个任务的训练数据迁移到另一个任务中，而不需要重新构建整个...
+2025-08-11 10:05:20,048 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 967.5ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:20,048 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:20,971 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_066] 命中: 820.77ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:20,971 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #67 ===
+2025-08-11 10:05:20,971 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_066 | 用户: user_001
+2025-08-11 10:05:20,971 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是迁移学习？
+2025-08-11 10:05:20,971 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 迁移学习是一种机器学习技术，它利用已有的数据集（称为“源”）来解决新任务或问题。换句话说，迁移学习是将一个领域中已经训练好的模型的知识和特征迁移到另一个领域中，...
+2025-08-11 10:05:20,971 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 820.8ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:20,971 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:22,114 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_067] 命中: 990.89ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:22,114 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #68 ===
+2025-08-11 10:05:22,114 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_067 | 用户: user_003
+2025-08-11 10:05:22,114 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何评估模型质量？
+2025-08-11 10:05:22,114 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 评估模型质量通常需要从多个角度进行，以下是一些常见的方法：
+
+1. 训练集和测试集划分：将数据集划分为训练集和测试集，训练集用于训练模型，测试集用于验证模型的性...
+2025-08-11 10:05:22,114 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 990.9ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:22,114 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:22,923 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_068] 命中: 707.18ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:22,923 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #69 ===
+2025-08-11 10:05:22,923 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_068 | 用户: user_003
+2025-08-11 10:05:22,923 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:05:22,923 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 大语言模型（也称为超大规模语言模型，HMM）是一种计算机程序，它可以模拟人类的自然语言处理过程，包括理解和生成文本。这种模型通常由一系列复杂的神经网络架构组成，...
+2025-08-11 10:05:22,923 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 707.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:22,924 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:23,994 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_069] 命中: 969.17ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:23,995 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #70 ===
+2025-08-11 10:05:23,995 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_069 | 用户: user_003
+2025-08-11 10:05:23,995 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是机器学习？
+2025-08-11 10:05:23,995 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 机器学习是一种人工智能技术，它通过从数据中学习模式和规律来实现自动化的决策和预测。它的主要目标是让计算机系统能够自动从经验中提取特征，从而解决复杂的问题，并且不...
+2025-08-11 10:05:23,995 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 969.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:23,995 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:05:23,995 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 70 | 成功: 70 (100.0%) | 平均耗时: 1060.2ms
+2025-08-11 10:05:23,995 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:24,819 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_070] 命中: 721.89ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:24,819 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #71 ===
+2025-08-11 10:05:24,819 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_070 | 用户: user_003
+2025-08-11 10:05:24,819 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何评估模型质量？
+2025-08-11 10:05:24,819 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 评估模型的质量通常包括以下几个方面：
+
+1. 准确性：准确性是评价模型性能的重要指标，通常用精度、召回率和F1分数等指标来衡量。精度是指模型预测为正例的样本数占...
+2025-08-11 10:05:24,819 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 721.9ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:24,819 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:25,907 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_071] 命中: 986.52ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:25,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #72 ===
+2025-08-11 10:05:25,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_071 | 用户: user_001
+2025-08-11 10:05:25,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是机器学习？
+2025-08-11 10:05:25,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 机器学习是一种人工智能的分支，它使用算法和统计模型来让计算机系统能够从数据中自动学习模式，并从中提取出有用的信息。它的目标是让计算机能够自动完成一些任务，而不需...
+2025-08-11 10:05:25,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 986.5ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:25,908 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:26,850 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_072] 命中: 840.68ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:26,850 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #73 ===
+2025-08-11 10:05:26,850 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_072 | 用户: user_002
+2025-08-11 10:05:26,850 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是过拟合？
+2025-08-11 10:05:26,850 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 过拟合（Overfitting）是指模型在训练数据集上表现良好，但在测试数据集上的表现较差的现象。当一个机器学习模型过于关注训练数据中的特定模式和细节，以至于对...
+2025-08-11 10:05:26,851 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 840.7ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:26,851 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:26,851 INFO  com.infertuner.sources.CacheAwareRequestSource               [] - 负载阶段: 回归集中访问 | 活跃用户: 5个 | 每用户session: 1 | 请求间隔: 100ms | 进度: 73/80
+2025-08-11 10:05:27,657 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_073] 命中: 705.19ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:27,658 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #74 ===
+2025-08-11 10:05:27,658 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_073 | 用户: user_003
+2025-08-11 10:05:27,658 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是注意力机制？
+2025-08-11 10:05:27,658 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 注意力机制（Attention Mechanism）是一种用于处理和分析多任务处理中信息的关键技术，它可以帮助计算机系统在处理复杂的、多目标或高维输入时，有效地...
+2025-08-11 10:05:27,658 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 705.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:27,658 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:27,759 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - FLUID调整检查: 当前速率=1.41, 历史均值=1.13, 扩容阈值=1.53, 缩容阈值=0.74, 当前缓存=5
+2025-08-11 10:05:28,375 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_074] 命中: 615.05ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:28,375 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #75 ===
+2025-08-11 10:05:28,375 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_074 | 用户: user_003
+2025-08-11 10:05:28,375 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是注意力机制？
+2025-08-11 10:05:28,375 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 注意力机制（Attention Mechanism）是一种计算机视觉技术，用于在图像处理中获取和处理特定区域的特征。它的基本思想是将注意力从一个或多个输入像素集...
+2025-08-11 10:05:28,375 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 615.1ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:28,375 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:05:28,375 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 75 | 成功: 75 (100.0%) | 平均耗时: 1041.1ms
+2025-08-11 10:05:28,375 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:29,024 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_075] 命中: 547.32ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:29,025 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #76 ===
+2025-08-11 10:05:29,025 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_075 | 用户: user_002
+2025-08-11 10:05:29,025 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何评估模型质量？
+2025-08-11 10:05:29,025 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 评估模型质量通常涉及以下几个步骤：
+
+1. **数据集预处理**：首先，需要对原始数据进行清洗、归一化和特征选择，以便于后续的模型训练。这包括去除异常值、填充缺...
+2025-08-11 10:05:29,025 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 547.3ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:29,025 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:29,682 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_076] 命中: 555.63ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:29,682 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #77 ===
+2025-08-11 10:05:29,682 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_076 | 用户: user_002
+2025-08-11 10:05:29,682 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是大语言模型？
+2025-08-11 10:05:29,682 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 大语言模型（也称为深度学习语言模型）是一种能够自动理解和生成人类语言的计算机程序。它们使用大量的语言数据，包括文本、语音和图像等，并利用深度神经网络技术来建立一...
+2025-08-11 10:05:29,682 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 555.6ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:29,682 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:30,679 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_077] 命中: 895.49ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:30,680 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #78 ===
+2025-08-11 10:05:30,680 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_077 | 用户: user_001
+2025-08-11 10:05:30,680 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 如何优化模型性能？
+2025-08-11 10:05:30,680 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 要优化模型性能，可以采取以下几种方法：
+
+1. 数据清洗：首先，对数据进行清洗和预处理，确保数据的质量、完整性、一致性等。这包括去除缺失值、异常值、重复值、标准...
+2025-08-11 10:05:30,680 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 895.5ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:30,680 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:31,612 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_078] 命中: 829.83ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:31,612 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #79 ===
+2025-08-11 10:05:31,612 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_078 | 用户: user_001
+2025-08-11 10:05:31,612 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是过拟合？
+2025-08-11 10:05:31,612 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 过拟合（Overfitting）是指在训练数据集上，模型过于复杂，以至于它能够很好地预测训练数据的特征，但在新未见过的数据上表现不佳的情况。简而言之，过拟合就是...
+2025-08-11 10:05:31,612 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 829.8ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:31,612 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:32,329 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - [req_079] 命中: 615.23ms (策略=FLUID, 缓存大小=5)
+2025-08-11 10:05:32,329 INFO  com.infertuner.sinks.SimpleResultSink                        [] - === 结果 #80 ===
+2025-08-11 10:05:32,329 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 请求ID: req_079 | 用户: user_001
+2025-08-11 10:05:32,329 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 问题: 什么是机器学习？
+2025-08-11 10:05:32,329 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 回答: 机器学习是一种人工智能的分支，它利用计算机程序和算法来让计算机自动从数据中学习，并从中获取规律和知识。它的目标是使计算机能够自动识别、理解、推理和预测自然语言、...
+2025-08-11 10:05:32,329 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 状态: 成功 | 耗时: 615.2ms | 模型: Qwen1.5-1.8B-Chat-Hit
+2025-08-11 10:05:32,329 INFO  com.infertuner.sinks.SimpleResultSink                        [] - --- 统计 ---
+2025-08-11 10:05:32,329 INFO  com.infertuner.sinks.SimpleResultSink                        [] - 总数: 80 | 成功: 80 (100.0%) | 平均耗时: 1019.1ms
+2025-08-11 10:05:32,329 INFO  com.infertuner.sinks.SimpleResultSink                        [] - ================
+2025-08-11 10:05:32,329 INFO  com.infertuner.sources.CacheAwareRequestSource               [] - 优化负载请求流生成完成，共 80 个请求
+2025-08-11 10:05:39,665 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - === 最终统计 (策略: FLUID) ===
+2025-08-11 10:05:39,665 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - 总请求: 80
+2025-08-11 10:05:39,666 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - 缓存命中: 58 (72.5%)
+2025-08-11 10:05:39,666 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - 平均延迟: 1019.1ms
+2025-08-11 10:05:39,666 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - 最终缓存大小: 5
+2025-08-11 10:05:39,666 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - 二级缓存统计: CacheStats{总请求=80, 本地命中=44(55.0%), 远端命中=14(17.5%), 未命中=22(27.5%), 本地大小=5/5, 远端大小=22}
+2025-08-11 10:05:39,666 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - FLUID策略统计: 历史平均速率=1.13请求/秒
+2025-08-11 10:05:39,666 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - ================
+2025-08-11 10:05:39,670 INFO  com.infertuner.processors.CacheEnabledInferenceProcessor     [] - 二级缓存推理服务已关闭
+2025-08-11 10:05:39,678 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Source: Cache-Aware Request Source -> Cache-Enabled Inference Processor -> Sink: Result Sink (1/1)#0 (270f94b631b35d25d363608964c465ba_cbc357ccb763df2852fee8c4fc7d55f2_0_0) switched from RUNNING to FINISHED.
+2025-08-11 10:05:39,678 INFO  org.apache.flink.runtime.taskmanager.Task                    [] - Freeing task resources for Source: Cache-Aware Request Source -> Cache-Enabled Inference Processor -> Sink: Result Sink (1/1)#0 (270f94b631b35d25d363608964c465ba_cbc357ccb763df2852fee8c4fc7d55f2_0_0).
+2025-08-11 10:05:39,683 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Un-registering task and sending final execution state FINISHED to JobManager for task Source: Cache-Aware Request Source -> Cache-Enabled Inference Processor -> Sink: Result Sink (1/1)#0 270f94b631b35d25d363608964c465ba_cbc357ccb763df2852fee8c4fc7d55f2_0_0.
+2025-08-11 10:05:39,801 INFO  org.apache.flink.runtime.taskexecutor.slot.TaskSlotTableImpl [] - Free slot TaskSlot(index:0, state:ACTIVE, resource profile: ResourceProfile{cpuCores=1, taskHeapMemory=364.800mb (382520517 bytes), taskOffHeapMemory=0 bytes, managedMemory=343.040mb (359703515 bytes), networkMemory=85.760mb (89925878 bytes)}, allocationId: ef9ab27ab2ab99aa3e59c091cfe1bb2d, jobId: d6d4f3dc3adfb9a806139b66a9228a67).
+2025-08-11 10:05:39,804 INFO  org.apache.flink.runtime.taskexecutor.DefaultJobLeaderService [] - Remove job d6d4f3dc3adfb9a806139b66a9228a67 from job leader monitoring.
+2025-08-11 10:05:39,805 INFO  org.apache.flink.runtime.taskexecutor.TaskExecutor           [] - Close JobManager connection for job d6d4f3dc3adfb9a806139b66a9228a67.

@@ -11,7 +11,7 @@ import queue
 
 def test_inference_service():
     model_path = "/workspace/models/Qwen1.5-1.8B-Chat"
-    service_script = "/workspace/infertuner-simple/scripts/simple_inference_service.py"
+    service_script = "/workspace/infertuner/scripts/simple_inference_service.py"
     
     print("🧪 启动推理服务测试...")
     

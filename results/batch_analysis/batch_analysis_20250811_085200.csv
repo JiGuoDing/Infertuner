@@ -1,0 +1,6 @@
+batch_size,avg_wait_ms,avg_latency_ms,throughput_req_per_sec,total_requests,efficiency_notes
+1,0,1059,.94,30,基准配置
+2,100,995,2.01,30,平衡配置
+3,200,1115,2.69,30,平衡配置
+4,313,1338,2.98,30,平衡配置
+8,740,1830,4.37,30,高吞吐配置
