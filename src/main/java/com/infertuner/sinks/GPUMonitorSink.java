@@ -59,43 +59,43 @@ public class GPUMonitorSink implements SinkFunction<InferenceResponse> {
     }
     
     private void outputStats() {
-    long currentTime = System.currentTimeMillis();
-    double elapsedSeconds = (currentTime - startTime) / 1000.0;
-    
-    int total = totalCount.get();
-    int success = successCount.get();
-    double avgTime = success > 0 ? totalTime.get() / (double) success : 0.0;
-    double throughput = total / elapsedSeconds;
-    double successRate = total > 0 ? (double) success / total * 100 : 0.0;
-    
-    // 修复：提前格式化所有数值
-    String successRateStr = String.format("%.1f", successRate);
-    String avgTimeStr = String.format("%.1f", avgTime);
-    String throughputStr = String.format("%.2f", throughput);
-    
-    logger.info("=== 整体统计 ===");
-    logger.info("总请求: {} | 成功: {} ({}%) | 平均延迟: {}ms | 吞吐量: {} req/s", 
-               total, success, successRateStr, avgTimeStr, throughputStr);
-    
-    logger.info("=== GPU分布统计 ===");
-    for (Map.Entry<Integer, GPUStats> entry : gpuStatsMap.entrySet()) {
-        int gpuId = entry.getKey();
-        GPUStats stats = entry.getValue();
-        
-        double gpuThroughput = stats.count / elapsedSeconds;
-        double gpuAvgTime = stats.successCount > 0 ? stats.totalTime / (double) stats.successCount : 0.0;
-        double gpuSuccessRate = stats.count > 0 ? (double) stats.successCount / stats.count * 100 : 0.0;
-        
-        // 修复：提前格式化GPU统计数值
-        String gpuSuccessRateStr = String.format("%.1f", gpuSuccessRate);
-        String gpuAvgTimeStr = String.format("%.1f", gpuAvgTime);
-        String gpuThroughputStr = String.format("%.2f", gpuThroughput);
-        
-        logger.info("GPU-{}: 请求={} | 成功率={}% | 平均延迟={}ms | 吞吐量={} req/s", 
-                   gpuId, stats.count, gpuSuccessRateStr, gpuAvgTimeStr, gpuThroughputStr);
+        long currentTime = System.currentTimeMillis();
+        double elapsedSeconds = (currentTime - startTime) / 1000.0;
+
+        int total = totalCount.get();
+        int success = successCount.get();
+        double avgTime = success > 0 ? totalTime.get() / (double) success : 0.0;
+        double throughput = total / elapsedSeconds;
+        double successRate = total > 0 ? (double) success / total * 100 : 0.0;
+
+        // 修复：提前格式化所有数值
+        String successRateStr = String.format("%.1f", successRate);
+        String avgTimeStr = String.format("%.1f", avgTime);
+        String throughputStr = String.format("%.2f", throughput);
+
+        logger.info("=== 整体统计 ===");
+        logger.info("总请求: {} | 成功: {} ({}%) | 平均延迟: {}ms | 吞吐量: {} req/s",
+                   total, success, successRateStr, avgTimeStr, throughputStr);
+
+        logger.info("=== GPU分布统计 ===");
+        for (Map.Entry<Integer, GPUStats> entry : gpuStatsMap.entrySet()) {
+            int gpuId = entry.getKey();
+            GPUStats stats = entry.getValue();
+
+            double gpuThroughput = stats.count / elapsedSeconds;
+            double gpuAvgTime = stats.successCount > 0 ? stats.totalTime / (double) stats.successCount : 0.0;
+            double gpuSuccessRate = stats.count > 0 ? (double) stats.successCount / stats.count * 100 : 0.0;
+
+            // 修复：提前格式化GPU统计数值
+            String gpuSuccessRateStr = String.format("%.1f", gpuSuccessRate);
+            String gpuAvgTimeStr = String.format("%.1f", gpuAvgTime);
+            String gpuThroughputStr = String.format("%.2f", gpuThroughput);
+
+            logger.info("GPU-{}: 请求={} | 成功率={}% | 平均延迟={}ms | 吞吐量={} req/s",
+                       gpuId, stats.count, gpuSuccessRateStr, gpuAvgTimeStr, gpuThroughputStr);
+        }
+        logger.info("========================");
     }
-    logger.info("========================");
-}
     
     private int extractGPUId(String modelName) {
         if (modelName != null && modelName.contains("GPU-")) {

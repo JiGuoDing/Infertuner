@@ -21,18 +21,17 @@ public class GPUScalingJob {
         logger.info("=== InferTuner 多GPU版本启动 ===");
         
         // 解析参数
-        int parallelism = args.length > 0 ? Integer.parseInt(args[0]) : 4; // 默认4卡
+        int parallelism = args.length > 0 ? Integer.parseInt(args[0]) : 10; // 默认10卡
         int maxRequests = args.length > 1 ? Integer.parseInt(args[1]) : 100; // 默认100个请求
         long interval = args.length > 2 ? Long.parseLong(args[2]) : 1000; // 默认1秒间隔
         
         logger.info("配置: parallelism={}, maxRequests={}, interval={}ms", parallelism, maxRequests, interval);
-        
-        // 创建执行环境
+
+        // 创建Flink流执行环境，构建流水线
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        // 设置并行度
+        // 设置全局并行度为GPU数量
         env.setParallelism(parallelism);
         
-        // 构建流水线
         DataStream<InferenceRequest> requests = env
             .addSource(new BasicRequestSource(maxRequests, interval, false))
             .name("Request Source");
@@ -48,7 +47,7 @@ public class GPUScalingJob {
         logger.info("多GPU流水线构建完成，开始执行...");
         logger.info("Web UI: http://localhost:8081");
         
-        // 执行
+        // 提交并运行作业
         env.execute("InferTuner Multi-GPU Test");
         
         logger.info("=== 多GPU执行完成 ===");

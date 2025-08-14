@@ -1,7 +1,4 @@
-#!/usr/bin/env python3
-"""
-
-"""
+#!/opt/conda/envs/vllm-env/bin/python3
 
 import torch
 import json
@@ -22,7 +19,12 @@ logger = logging.getLogger(__name__)
 class SimpleInferenceService:
     """精简版推理服务 - GPU加速版本"""
     
-    def __init__(self, model_path: str, gpu_id: int = 0):
+    def __init__(self, node_ip: str, model_path: str, gpu_id: int = 0):
+        """
+            node_ip指明推理进程所在节点的IP地址
+        """
+
+        self.node_ip = node_ip
         self.model_path = model_path
         self.gpu_id = gpu_id
         
@@ -44,13 +46,11 @@ class SimpleInferenceService:
             "errors": 0,
             "start_time": time.time()
         }
-        
-        logger.info("SimpleInferenceService初始化完成")
     
     def _load_model(self):
         """加载模型到GPU"""
         try:
-            logger.info(f"从 {self.model_path} 加载模型到 {self.device}")
+            logger.info(f"节点 {self.node_ip} 从 {self.model_path} 加载模型到 {self.device}")
             
             # 加载tokenizer
             tokenizer = AutoTokenizer.from_pretrained(
@@ -61,8 +61,8 @@ class SimpleInferenceService:
             # 加载模型到GPU
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_path,
-                torch_dtype=torch.float16,  # GPU使用float16节省显存
-                device_map={"": self.device},  # 强制加载到指定GPU
+                torch_dtype=torch.bfloat16,  # GPU使用float16节省显存
+                device_map="auto"
                 trust_remote_code=True,
                 low_cpu_mem_usage=True
             )
@@ -73,7 +73,7 @@ class SimpleInferenceService:
             if torch.cuda.is_available():
                 gpu_memory = torch.cuda.get_device_properties(self.device).total_memory / 1e9
                 allocated = torch.cuda.memory_allocated(self.device) / 1e9
-                logger.info(f"GPU显存: {allocated:.1f}GB / {gpu_memory:.1f}GB")
+                logger.info(f"节点 {self.node_ip} 的GPU显存: {allocated:.1f}GB / {gpu_memory:.1f}GB")
             
             logger.info("✅ 模型加载成功")
             return tokenizer, model
@@ -90,7 +90,7 @@ class SimpleInferenceService:
         try:
             # 解析请求参数
             user_message = request_data.get('user_message', '')
-            max_tokens = request_data.get('max_tokens', 100)
+            max_tokens = request_data.get('max_tokens', 640)
             request_id = request_data.get('request_id', 'unknown')
             batch_size = request_data.get('batch_size', 1)  # 支持批处理参数
             
@@ -225,8 +225,6 @@ def main():
     # 初始化服务
     try:
         service = SimpleInferenceService(model_path, gpu_id)
-        logger.info("�� GPU推理服务启动成功！")
-        logger.info(f"使用设备: {service.device}")
         logger.info("输入格式: JSON包含'user_message', 'max_tokens', 'request_id'等字段")
         logger.info("特殊命令: {'command': 'stats'} 获取统计, {'command': 'shutdown'} 关闭服务")
     except Exception as e:

@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
 public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, InferenceResponse> {
@@ -17,15 +18,19 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
     
     private int gpuId;
     private int taskIndex;
+    private String nodeIP;
     // 推理进程
     private Process inferenceProcess;
     private BufferedWriter processInput;
     private BufferedReader processOutput;
     private ObjectMapper objectMapper;
-    
-    private static final String MODEL_PATH = "/workspace/models/Qwen1.5-1.8B-Chat";
-    private static final String SERVICE_SCRIPT = "/workspace/infertuner/scripts/simple_inference_service.py";
-    private static final int MAX_GPUS = 4;
+
+    // 模型路径
+    private static final String MODEL_NAME = "Llama";
+    private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/";
+    // 推理服务脚本路径
+    private static final String SERVICE_SCRIPT = "scripts/simple_inference_service.py";
+    // private static final int MAX_GPUS = 20;
     
     @Override
     public void open(Configuration parameters) throws Exception {
@@ -36,22 +41,29 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
 
         // 获取当前子任务的编号
         taskIndex = getRuntimeContext().getIndexOfThisSubtask();
-        // 分配GPU，实现多GPU负载均衡
-        gpuId = taskIndex % MAX_GPUS;
-        
-        logger.info("Task {} 启动，绑定到 GPU {}", taskIndex, gpuId);
-        
+
+        // 多机单卡固定为0
+        gpuId = 0;
+
+        // 获取的当前节点IP
+        try {
+            nodeIP = java.net.InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            logger.error("获取当前节点IP失败", e);
+            nodeIP = "Unknown-hostIP";
+        }
+
+        logger.info("Task {} 启动，运行节点: {}，绑定 GPU {}", taskIndex, nodeIP, gpuId);
+
         objectMapper = new ObjectMapper();
         startInferenceService();
-        
-        logger.info("GPU {} 推理服务启动完成", gpuId);
     }
     
     private void startInferenceService() throws Exception {
         /*
             启动Python推理服务脚本
          */
-        logger.info("启动 GPU {} 推理服务...", gpuId);
+        logger.info("节点 {} 初始化推理服务...", nodeIP);
 
         // 使用ProcessBuilder启动Python推理进程，进程参数为模型路径和GPU ID
         ProcessBuilder pb = new ProcessBuilder(
@@ -66,15 +78,15 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
         processOutput = new BufferedReader(new InputStreamReader(inferenceProcess.getInputStream()));
 
         // 等待服务初始化
-        logger.info("等待 GPU {} 服务初始化...", gpuId);
+        logger.info("等待节点 {} 服务初始化...", nodeIP);
         Thread.sleep(8000);
 
         // 检察进程是否启动成功
         if (!inferenceProcess.isAlive()) {
-            throw new RuntimeException("GPU " + gpuId + " 推理服务启动失败");
+            throw new RuntimeException("节点 " + nodeIP + " 推理服务初始化失败");
         }
         
-        logger.info("✅ GPU {} 推理服务启动成功", gpuId);
+        logger.info("✅ 节点 {} 推理服务初始化成功", nodeIP);
     }
     
     @Override
@@ -98,6 +110,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
         // 构造 RequestData
         try {
             // 构造发送给 Python 服务的请求数据对象，包含推理请求的必要信息
+            // TODO 确认推理服务里的batch的含义
             RequestData requestData = new RequestData(
                 request.userMessage,
                 request.maxTokens,
@@ -116,7 +129,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
             // 读取 Python 服务返回的一行 JSON 响应
             String responseJson = processOutput.readLine();
             if (responseJson == null) {
-                throw new RuntimeException("GPU " + gpuId + " 服务无响应");
+                throw new RuntimeException("节点 " + nodeIP + " 服务无响应");
             }
 
             // 将 JSON 响应反序列化为 Java 对象
@@ -126,7 +139,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
             response.aiResponse = responseData.response;
             // 记录推理耗时
             response.inferenceTimeMs = responseData.inference_time_ms;
-            response.modelName = responseData.model_name + String.format(" (GPU-%d,Batch-%d)", gpuId, request.batchSize);
+            response.modelName = responseData.model_name + String.format(" (NodeIP-%s,Batch-%d)", nodeIP, request.batchSize);
             response.fromCache = false;
 
             // 设置批处理相关信息
@@ -134,16 +147,16 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
             response.batchProcessTimeMs = (long)response.inferenceTimeMs;
             response.totalLatencyMs = (long)response.inferenceTimeMs;
             
-            logger.debug("GPU {} 处理请求 {} 完成，耗时 {:.2f}ms，批大小: {}", 
-                        gpuId, request.requestId, response.inferenceTimeMs, request.batchSize);
+            logger.debug("节点 {} 处理请求 {} 完成，耗时 {}ms，批大小: {}",
+                        nodeIP, request.requestId, String.format("%.2f", response.inferenceTimeMs), request.batchSize);
             
         } catch (Exception e) {
-            logger.error("GPU {} 处理请求失败: {}", gpuId, e.getMessage(), e);
+            logger.error("节点 {} 处理请求失败: {}", nodeIP, e.getMessage(), e);
             
             response.success = false;
-            response.aiResponse = "GPU " + gpuId + " 处理失败: " + e.getMessage();
+            response.aiResponse = "节点 " + nodeIP + " 处理失败: " + e.getMessage();
             response.inferenceTimeMs = System.currentTimeMillis() - startTime;
-            response.modelName = "Error-GPU-" + gpuId;
+            response.modelName = "Error-Node-" + nodeIP;
         }
         
         return response;
