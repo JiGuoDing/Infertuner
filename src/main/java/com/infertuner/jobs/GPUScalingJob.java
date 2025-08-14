@@ -29,13 +29,15 @@ public class GPUScalingJob {
         
         // 创建执行环境
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(parallelism); // 设置并行度
+        // 设置并行度
+        env.setParallelism(parallelism);
         
         // 构建流水线
         DataStream<InferenceRequest> requests = env
             .addSource(new BasicRequestSource(maxRequests, interval, false))
             .name("Request Source");
-        
+
+        // 将推理请求映射为推理响应流
         DataStream<InferenceResponse> responses = requests
             .map(new GPUInferenceProcessor())  // 使用多GPU处理器
             .name("Multi-GPU Inference Processor");

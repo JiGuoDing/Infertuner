@@ -6,7 +6,7 @@
 set -e
 
 cd /workspace/infertuner
-FLINK_HOME="/workspace/flink-setup/flink"
+FLINK_HOME="/opt/flink-1.17.2/"
 SCRIPT_NAME="GPU扩展性验证"
 
 echo "🚀 === ${SCRIPT_NAME} ==="
@@ -20,6 +20,7 @@ GPU_SCALING_REQUEST_COUNT=50
 GPU_SCALING_REQUEST_INTERVAL=500  # ms
 GPU_SCALING_PARALLELISM_CONFIGS=(1 2 4)
 
+# 每次实验发送的推理请求数量（50），两次请求之间等待500ms
 echo "📋 实验配置:"
 echo "  请求数量: ${GPU_SCALING_REQUEST_COUNT}"
 echo "  请求间隔: ${GPU_SCALING_REQUEST_INTERVAL}ms"  
@@ -27,8 +28,8 @@ echo "  并行度测试: ${GPU_SCALING_PARALLELISM_CONFIGS[*]}"
 echo ""
 
 # 创建结果目录
-RESULTS_DIR="results/gpu_scaling"
-LOGS_DIR="logs/gpu_scaling"
+RESULTS_DIR="/mnt/tidal-alsh01/usr/suqian/results/gpu_scaling"
+LOGS_DIR="/mnt/tidal-alsh01/usr/suqian/logs/gpu_scaling"
 mkdir -p "$RESULTS_DIR" "$LOGS_DIR"
 
 # 结果文件
@@ -53,13 +54,13 @@ for parallelism in "${GPU_SCALING_PARALLELISM_CONFIGS[@]}"; do
     $FLINK_HOME/bin/start-cluster.sh >/dev/null 2>&1
     sleep 5
     
-    # 2. 编译项目
-    echo "  🔨 编译项目..."
-    mvn clean package -q > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        echo "  ❌ 编译失败"
-        continue
-    fi
+#    # 2. 编译项目
+#    echo "  🔨 编译项目..."
+#    mvn clean package -q > /dev/null 2>&1
+#    if [ $? -ne 0 ]; then
+#        echo "  ❌ 编译失败"
+#        continue
+#    fi
     
     # 3. 运行实验
     echo "  🚀 运行GPU扩展性测试..."
