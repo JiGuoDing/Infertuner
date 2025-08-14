@@ -27,7 +27,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
 
     // 模型路径
     private static final String MODEL_NAME = "Llama";
-    private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/";
+    private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/".concat(MODEL_NAME);
     // 推理服务脚本路径
     private static final String SERVICE_SCRIPT = "scripts/simple_inference_service.py";
     // private static final int MAX_GPUS = 20;
@@ -58,30 +58,34 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
         objectMapper = new ObjectMapper();
         startInferenceService();
     }
-    
+
+    /**
+     * 启动Python推理服务，并通过标准输入输出流与之通信
+     */
     private void startInferenceService() throws Exception {
-        /*
-            启动Python推理服务脚本
-         */
         logger.info("节点 {} 初始化推理服务...", nodeIP);
 
-        // 使用ProcessBuilder启动Python推理进程，进程参数为模型路径和GPU ID
+        // 使用ProcessBuilder启动Python推理进程，进程输入参数为nodeIP,模型路径和GPU ID
         ProcessBuilder pb = new ProcessBuilder(
-            "python3", SERVICE_SCRIPT, MODEL_PATH, String.valueOf(gpuId)
+            "python3", SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId)
         );
         
         pb.redirectErrorStream(false);
         inferenceProcess = pb.start();
 
         // 初始化输入输出流，用于与Python进程通信
+        // Java 进程通过processInput向Python进程的stdin发送Json格式的请求
+        // getOutputStream() 方法返回一个 OutputStream，用于向进程的标准输入(stdin) 写入数据
         processInput = new BufferedWriter(new OutputStreamWriter(inferenceProcess.getOutputStream()));
+        // Java 进程通过processOutput从Python进程的stdout读取Json格式的响应
+        // getInputStream() 方法返回一个 InputStream，用于从进程的标准输出(stdout) 读取数据
         processOutput = new BufferedReader(new InputStreamReader(inferenceProcess.getInputStream()));
 
         // 等待服务初始化
         logger.info("等待节点 {} 服务初始化...", nodeIP);
         Thread.sleep(8000);
 
-        // 检察进程是否启动成功
+        // 检查进程是否启动成功
         if (!inferenceProcess.isAlive()) {
             throw new RuntimeException("节点 " + nodeIP + " 推理服务初始化失败");
         }
@@ -118,10 +122,10 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
                 request.batchSize  // 传递批大小给Python服务
             );
 
-            // 将请求对象序列化为 JSON 字符串
+            // 将请求对象序列化为 JSON 字符串，得到的requestJson在逻辑上是一行字符串（单一String对象）
             String requestJson = objectMapper.writeValueAsString(requestData);
 
-            // 通过进程输入流，将 JSON 请求发送给 Python推理服务
+            // 通过标准输入流，将 JSON 请求发送给 Python推理服务
             processInput.write(requestJson + "\n");
             // 使用 flush() 保证数据立刻发出
             processInput.flush();
@@ -158,13 +162,12 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
             response.inferenceTimeMs = System.currentTimeMillis() - startTime;
             response.modelName = "Error-Node-" + nodeIP;
         }
-        
         return response;
     }
     
     @Override
     public void close() throws Exception {
-        logger.info("关闭 GPU {} 推理服务...", gpuId);
+        logger.info("关闭节点 {} 的推理服务...", nodeIP);
         
         try {
             if (processInput != null) {
@@ -181,16 +184,16 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
 
             if (inferenceProcess != null && inferenceProcess.isAlive()) {
                 if (!inferenceProcess.waitFor(10, TimeUnit.SECONDS)) {
-                    logger.warn("GPU {} 服务未在10秒内退出，强制终止", gpuId);
+                    logger.warn("节点 {} 的服务未在10秒内退出，强制终止", nodeIP);
                     inferenceProcess.destroyForcibly();
                 }
             }
 
         } catch (Exception e) {
-            logger.error("关闭 GPU {} 服务时出错: {}", gpuId, e.getMessage());
+            logger.error("关闭节点 {} 的服务时出错: {}", nodeIP, e.getMessage());
         }
 
-        logger.info("✅ GPU {} 推理服务已关闭", gpuId);
+        logger.info("✅ 节点 {} 的推理服务已关闭", nodeIP);
         super.close();
     }
 

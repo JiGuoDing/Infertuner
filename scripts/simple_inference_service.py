@@ -201,12 +201,13 @@ class SimpleInferenceService:
 
 def main():
     """主函数"""
-    if len(sys.argv) < 2:
-        logger.error("用法: python3 simple_inference_service.py <model_path> [gpu_id]")
+    if len(sys.argv) < 3:
+        logger.error("用法: python3 simple_inference_service.py <node_ip> <model_path> <gpu_id>")
         sys.exit(1)
-    
-    model_path = sys.argv[1]
-    gpu_id = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+
+    node_ip = sys.argv[1]
+    model_path = sys.argv[2]
+    gpu_id = int(sys.argv[3]) if len(sys.argv) > 3 else 0
     
     # 检查模型路径
     if not Path(model_path).exists():
@@ -224,7 +225,7 @@ def main():
     
     # 初始化服务
     try:
-        service = SimpleInferenceService(model_path, gpu_id)
+        service = SimpleInferenceService(node_ip, model_path, gpu_id)
         logger.info("输入格式: JSON包含'user_message', 'max_tokens', 'request_id'等字段")
         logger.info("特殊命令: {'command': 'stats'} 获取统计, {'command': 'shutdown'} 关闭服务")
     except Exception as e:
@@ -233,6 +234,7 @@ def main():
     
     # 处理请求循环
     try:
+        # 在没有外部干预的情况下，该循环是一个无限循环，因为sys.stdin是一个流式输入，Python 会持续读取直到流关闭或发生特定事件。
         for line_num, line in enumerate(sys.stdin, 1):
             line = line.strip()
             if not line:
@@ -297,10 +299,11 @@ def main():
         # 输出最终统计
         try:
             final_stats = service.get_stats()
-            logger.info(f"服务停止，最终统计: {final_stats}")
-        except:
-            pass
-        logger.info("🛑 推理服务已停止")
+            logger.info(f"最终统计结果: {final_stats}")
+        except Exception as e:
+            logger.error("获取最终统计时出错")
+        finally:
+            logger.info("🛑 推理服务已停止")
 
 if __name__ == "__main__":
     main()

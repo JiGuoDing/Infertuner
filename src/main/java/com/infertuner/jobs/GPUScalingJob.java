@@ -38,7 +38,7 @@ public class GPUScalingJob {
 
         // 将推理请求映射为推理响应流
         DataStream<InferenceResponse> responses = requests
-            .map(new GPUInferenceProcessor())  // 使用多GPU处理器
+            .map(new GPUInferenceProcessor())
             .name("Multi-GPU Inference Processor");
         
         responses.addSink(new GPUMonitorSink())
