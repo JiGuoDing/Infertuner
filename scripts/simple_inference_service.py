@@ -62,7 +62,7 @@ class SimpleInferenceService:
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_path,
                 torch_dtype=torch.bfloat16,  # GPU使用float16节省显存
-                device_map="auto"
+                device_map="auto",
                 trust_remote_code=True,
                 low_cpu_mem_usage=True
             )
@@ -111,7 +111,7 @@ class SimpleInferenceService:
             result = {
                 "response": response_text,
                 "inference_time_ms": round(inference_time, 2),
-                "model_name": "Qwen1.5-1.8B-Chat",
+                "model_name": "Qwen3-30B-A3B-Instruct",
                 "request_id": request_id,
                 "batch_size": batch_size,
                 "success": True,

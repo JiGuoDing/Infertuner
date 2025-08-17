@@ -18,7 +18,7 @@ echo ""
 # =============================================================================
 GPU_SCALING_REQUEST_COUNT=50
 GPU_SCALING_REQUEST_INTERVAL=500  # ms
-GPU_SCALING_PARALLELISM_CONFIGS=(1 2 4)
+GPU_SCALING_PARALLELISM_CONFIGS=(1 4 8)
 
 # 每次实验发送的推理请求数量（50），两次请求之间等待500ms
 echo "📋 实验配置:"

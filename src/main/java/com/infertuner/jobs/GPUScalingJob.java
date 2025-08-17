@@ -31,7 +31,8 @@ public class GPUScalingJob {
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         // 设置全局并行度为GPU数量
         env.setParallelism(parallelism);
-        
+
+        // 生成模拟请求流
         DataStream<InferenceRequest> requests = env
             .addSource(new BasicRequestSource(maxRequests, interval, false))
             .name("Request Source");

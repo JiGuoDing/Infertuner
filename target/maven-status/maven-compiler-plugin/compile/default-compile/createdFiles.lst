@@ -19,14 +19,14 @@ com/infertuner/jobs/GPUScalingJob.class
 com/infertuner/processors/CacheEnabledInferenceProcessor$1.class
 com/infertuner/processors/GPUInferenceProcessor.class
 com/infertuner/processors/CacheEnabledInferenceProcessor$CacheStrategy.class
-com/infertuner/sinks/GPUMonitorSink$GPUStats.class
+com/infertuner/sinks/GPUMonitorSink$NodeStats.class
 com/infertuner/processors/GPUInferenceProcessor$ResponseData.class
 com/infertuner/sinks/BatchAnalysisSink.class
 com/infertuner/cache/TwoLevelCacheManager$CacheStats.class
+com/infertuner/cache/KVCacheEntry.class
+com/infertuner/source/SimpleBatchingRequestSource.class
 com/infertuner/processors/BatchProcessor$RequestData.class
 com/infertuner/processors/GPUInferenceProcessor$RequestData.class
-com/infertuner/source/SimpleBatchingRequestSource.class
-com/infertuner/cache/KVCacheEntry.class
 com/infertuner/jobs/CacheExperimentJob.class
 com/infertuner/models/InferenceResponse.class
 com/infertuner/optimization/SimpleFrequencyCapture.class

@@ -26,10 +26,10 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
     private ObjectMapper objectMapper;
 
     // 模型路径
-    private static final String MODEL_NAME = "Llama";
+    private static final String MODEL_NAME = "Qwen3-30B-A3B-Instruct";
     private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/".concat(MODEL_NAME);
     // 推理服务脚本路径
-    private static final String SERVICE_SCRIPT = "scripts/simple_inference_service.py";
+    private static final String SERVICE_SCRIPT = "/mnt/tidal-alsh01/usr/suqian/scripts/simple_inference_service.py";
     // private static final int MAX_GPUS = 20;
     
     @Override
@@ -67,7 +67,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
 
         // 使用ProcessBuilder启动Python推理进程，进程输入参数为nodeIP,模型路径和GPU ID
         ProcessBuilder pb = new ProcessBuilder(
-            "python3", SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId)
+            "/opt/conda/envs/vllm-env/bin/python", SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId)
         );
         
         pb.redirectErrorStream(false);
