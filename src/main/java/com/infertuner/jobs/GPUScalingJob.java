@@ -44,10 +44,11 @@ public class GPUScalingJob {
             .name("Multi-GPU Inference Processor");
 
         String experimentId = String.format("%d nodes - %d requests", parallelism, maxRequests);
-        responses.addSink(new UnifiedPerformanceSink(
+        // 添加 .keyBy(r -> 0) 将所有响应聚合到一个分区，并把 Sink 并行度强制设为1
+        responses.keyBy(r -> 0).addSink(new UnifiedPerformanceSink(
                 UnifiedPerformanceSink.ExperimentType.GPU_SCALING,
                 experimentId
-        )).name("Unified Node GPU Performance Sink");
+        )).name("Unified Node GPU Performance Sink").setParallelism(1);
         
         logger.info("多节点推理流水线构建完成，开始执行...");
         
