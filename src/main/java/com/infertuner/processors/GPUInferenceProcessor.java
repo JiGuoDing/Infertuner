@@ -30,7 +30,6 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
     private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/".concat(MODEL_NAME);
     // 推理服务脚本路径
     private static final String SERVICE_SCRIPT = "/mnt/tidal-alsh01/usr/suqian/scripts/simple_inference_service.py";
-    // private static final int MAX_GPUS = 20;
     
     @Override
     public void open(Configuration parameters) throws Exception {
@@ -63,7 +62,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
      * 启动Python推理服务，并通过标准输入输出流与之通信
      */
     private void startInferenceService() throws Exception {
-        logger.info("节点 {} 初始化推理服务...", nodeIP);
+        logger.info("正在启动节点 {} 的推理服务...", nodeIP);
 
         // 使用ProcessBuilder启动Python推理进程，进程输入参数为nodeIP,模型路径和GPU ID
         ProcessBuilder pb = new ProcessBuilder(
