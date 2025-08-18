@@ -4,6 +4,7 @@ import com.infertuner.models.InferenceRequest;
 import com.infertuner.models.InferenceResponse;
 import com.infertuner.processors.GPUInferenceProcessor;
 import com.infertuner.sinks.GPUMonitorSink;
+import com.infertuner.sinks.UnifiedPerformanceSink;
 import com.infertuner.sources.BasicRequestSource;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -34,23 +35,25 @@ public class GPUScalingJob {
 
         // 生成模拟请求流
         DataStream<InferenceRequest> requests = env
-            .addSource(new BasicRequestSource(maxRequests, interval, false))
+            .addSource(new BasicRequestSource(maxRequests, interval, true))
             .name("Request Source");
 
         // 将推理请求映射为推理响应流
         DataStream<InferenceResponse> responses = requests
             .map(new GPUInferenceProcessor())
             .name("Multi-GPU Inference Processor");
+
+        String experimentId = String.format("%d nodes - %d requests", parallelism, maxRequests);
+        responses.addSink(new UnifiedPerformanceSink(
+                UnifiedPerformanceSink.ExperimentType.GPU_SCALING,
+                experimentId
+        )).name("Unified Node GPU Performance Sink");
         
-        responses.addSink(new GPUMonitorSink())
-            .name("Multi-GPU Monitor Sink");
-        
-        logger.info("多GPU流水线构建完成，开始执行...");
-        logger.info("Web UI: http://localhost:8081");
+        logger.info("多节点推理流水线构建完成，开始执行...");
         
         // 提交并运行作业
-        env.execute("InferTuner Multi-GPU Test");
+        env.execute("InferTuner Multi-Nodes Test");
         
-        logger.info("=== 多GPU执行完成 ===");
+        logger.info("=== 多节点推理执行完成 ===");
     }
 }

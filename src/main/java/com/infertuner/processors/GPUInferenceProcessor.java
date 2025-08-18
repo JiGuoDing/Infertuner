@@ -113,7 +113,6 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
         // 构造 RequestData
         try {
             // 构造发送给 Python 服务的请求数据对象，包含推理请求的必要信息
-            // TODO 确认推理服务里的batch的含义
             RequestData requestData = new RequestData(
                 request.userMessage,
                 request.maxTokens,
@@ -150,7 +149,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
             response.batchProcessTimeMs = (long)response.inferenceTimeMs;
             response.totalLatencyMs = (long)response.inferenceTimeMs;
             
-            logger.debug("节点 {} 处理请求 {} 完成，耗时 {}ms，批大小: {}",
+            logger.info("节点 {} 处理请求 {} 完成，耗时 {}ms，批大小: {}",
                         nodeIP, request.requestId, String.format("%.2f", response.inferenceTimeMs), request.batchSize);
             
         } catch (Exception e) {

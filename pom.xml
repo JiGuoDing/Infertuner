@@ -88,10 +88,6 @@
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>${main.class}</mainClass>
-                                    <!-- 默认主类保持为原来的SimpleInferenceJob -->
-                                    <!-- <mainClass>com.infertuner.MultiGPUInferenceJob</mainClass> -->
-                                    <!-- <mainClass>com.infertuner.SimpleInferenceJob</mainClass> -->
-                                    <!-- <mainClass>com.infertuner.CacheExperimentJob</mainClass> -->
                                 </transformer>
                             </transformers>
                             <filters>

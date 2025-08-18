@@ -5,6 +5,7 @@ import com.infertuner.models.InferenceRequest;
 import com.infertuner.models.InferenceResponse;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.configuration.Configuration;
+import org.apache.flink.runtime.executiongraph.Execution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,7 +124,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
         logger.info("节点 {} 收到请求 {} (第{}个)",
                    nodeIP, request.requestId, requestCounter);
 
-        InferenceResponse response = new InferenceResponse();
+        InferenceResponse response;
         boolean shouldProcess = false;
 
         // TODO 攒批的逻辑
@@ -160,16 +161,23 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
             for (InferenceRequest req : batchRequestsCopy) {
                 requestToBatchId.put(req.requestId, batchId);
             }
+
+            List<InferenceResponse> responses = processBatch(batchRequestsCopy, batchId, actualBatchSize);
+            for (InferenceResponse resp : responses) {
+                responseMap.put(resp.requestId, resp);
+            }
+            isProcessing = false;
+            this.notifyAll();
         }
 
 
         // 设置攒批相关信息
-        response.waitTimeMs = waitTime;
-        response.batchProcessTimeMs = (long)response.inferenceTimeMs;
-        response.totalLatencyMs = waitTime + (long)response.inferenceTimeMs;
+        // response.waitTimeMs = waitTime;
+        // response.batchProcessTimeMs = (long)response.inferenceTimeMs;
+        // response.totalLatencyMs = waitTime + (long)response.inferenceTimeMs;
         
-        logger.info("GPU {} 处理 {} 完成: 等待={}ms, 推理={}ms, 总延迟={}ms", 
-                   gpuId, request.requestId, waitTime, (long)response.inferenceTimeMs, response.totalLatencyMs);
+        logger.info("节点 {} 处理 {} 完成: 等待=ms, 推理={}ms, 总延迟={}ms",
+                   nodeIP, request.requestId, (long)response.inferenceTimeMs, response.totalLatencyMs);
         
         return response;
     }
@@ -177,9 +185,61 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
     /*
     批次推理
      */
-    private  List<InferenceResponse> processBatch(List<InferenceRequest> requests) {
+    private  List<InferenceResponse> processBatch(List<InferenceRequest> requests, int batchId, int actualBatchSize) {
         List<InferenceResponse> responses = new ArrayList<>();
+        // 预先构建推理响应列表
+        for (InferenceRequest request : requests) {
+            InferenceResponse response = new InferenceResponse();
+            response.requestId = request.requestId;
+            response.userId = request.userId;
+            response.userMessage = request.userMessage;
+            response.timestamp = System.currentTimeMillis();
+            responses.add(response);
+        }
 
+        try {
+            List<RequestData> requestDataList = new ArrayList<>();
+            // 构建要向Python进程传输的请求数据列表
+            for (InferenceRequest request : requests) {
+                RequestData requestData = new RequestData(
+                    request.userMessage,
+                    request.maxTokens,
+                    request.requestId
+                );
+                requestDataList.add(requestData);
+            }
+
+            String requestJson = objectMapper.writeValueAsString(requestDataList);
+            processInput.write(requestJson + "\n");
+            processInput.flush();
+
+            String responseJson = processOutput.readLine();
+
+            long end = System.currentTimeMillis();
+            batchEndTime.put(batchId, end);
+
+            List<ResponseData> responseDataList = List.of(objectMapper.readValue(responseJson, ResponseData[].class));
+
+            for (int i = 0; i < actualBatchSize; i++) {
+                responses.get(i).success = responseDataList.get(i).success;
+                responses.get(i).aiResponse = responseDataList.get(i).response;
+                responses.get(i).inferenceTimeMs = responseDataList.get(i).inference_time_ms;
+                responses.get(i).modelName = responseDataList.get(i).model_name + String.format(" (Node-%s,Batch-%d)", nodeIP, actualBatchSize);
+                responses.get(i).fromCache = false;
+            }
+
+
+        } catch (Exception e) {
+            logger.error("GPU {} 批次推理失败: {}", gpuId, e.getMessage(), e);
+            for (InferenceResponse response : responses) {
+                response.success = false;
+                response.aiResponse = "批次推理失败: " + e.getMessage();
+                response.inferenceTimeMs = 0;
+                response.modelName = "Error-Node-" + nodeIP;
+            }
+        }
+
+        return responses;
     }
 
     /*
@@ -197,8 +257,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
             RequestData requestData = new RequestData(
                 request.userMessage,
                 request.maxTokens,
-                request.requestId,
-                actualBatchSize
+                request.requestId
             );
             
             String requestJson = objectMapper.writeValueAsString(requestData);
@@ -272,13 +331,11 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
         public String user_message;
         public int max_tokens;
         public String request_id;
-        public int batch_size;
         
-        public RequestData(String userMessage, int maxTokens, String requestId, int batchSize) {
+        public RequestData(String userMessage, int maxTokens, String requestId) {
             this.user_message = userMessage;
             this.max_tokens = maxTokens;
             this.request_id = requestId;
-            this.batch_size = batchSize;
         }
     }
     
