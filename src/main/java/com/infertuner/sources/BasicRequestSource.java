@@ -16,7 +16,7 @@ public class BasicRequestSource implements SourceFunction<InferenceRequest> {
     private volatile boolean isRunning = true;
     private final Random random = new Random();
     
-    private final String[] users = {"user1", "user2", "user3"};
+    private final String[] users = {"user1", "user2", "user3", "user4", "user5", "user6", "user7", "user8", "user9", "user10"};
     private final String[] questions = {
         "什么是机器学习？",
         "深度学习的基本原理是什么？", 

@@ -70,7 +70,8 @@ public class CountBasedBatchAnalysisJob {
         // 用request的requestID作为键，并且使用rebalance()进行负载均衡
         // 注：通过keyBy获取key后，flink还会进行key分区，通过targetTaskIndex = hash(key) % numTasks得到下游subtask的索引
         // 将key进行放大，防止flink内部键分区hash后请求落到固定几个subtask
-        DataStream<InferenceResponse> responses = requests.rebalance().keyBy(req -> (Integer.parseInt(req.getRequestId().substring(4)) % parallelism) * (parallelism > 0 ? parallelism-1 : 1))
+        // 不使用requestId，而使用userId
+        DataStream<InferenceResponse> responses = requests.rebalance().keyBy(req -> Integer.valueOf(req.getUserId().substring(4)))
                 .process(new KeyedProcessFunctionBatchProcessor())
                 .name("Count Based Batch Processor");
 
