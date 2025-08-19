@@ -1,6 +1,8 @@
 com/infertuner/sinks/UnifiedPerformanceSink$ExperimentType.class
+com/infertuner/processors/KeyedProcessFunctionBatchProcessor$SingleRequestData.class
 com/infertuner/sources/CacheAwareRequestSource$LoadConfig.class
 com/infertuner/processors/RealBatchProcessor$RequestData.class
+com/infertuner/processors/KeyedProcessFunctionBatchProcessor.class
 com/infertuner/models/InferenceRequest.class
 com/infertuner/sinks/SimpleResultSink.class
 com/infertuner/processors/BatchProcessor.class
@@ -33,10 +35,14 @@ com/infertuner/cache/KVCacheEntry.class
 com/infertuner/processors/ProcessFunctionBatchProcessor$SingleRequestData.class
 com/infertuner/processors/GPUInferenceProcessor$ShutdownCommand.class
 com/infertuner/sinks/GPUMonitorSink.class
+com/infertuner/processors/KeyedProcessFunctionBatchProcessor$SingleResponseData.class
 com/infertuner/sources/BasicRequestSource.class
 com/infertuner/sources/CacheAwareRequestSource.class
+com/infertuner/processors/KeyedProcessFunctionBatchProcessor$ShutdownCommand.class
 com/infertuner/optimization/SimpleFrequencyCapture$BucketInfo.class
+com/infertuner/processors/KeyedProcessFunctionBatchProcessor$BatchRequestData.class
 com/infertuner/sources/CacheAwareRequestSource$1.class
+com/infertuner/processors/KeyedProcessFunctionBatchProcessor$BatchResponseData.class
 com/infertuner/sources/CacheAwareRequestSource$LoadPhase.class
 com/infertuner/jobs/GPUScalingJob.class
 com/infertuner/processors/CacheEnabledInferenceProcessor$1.class

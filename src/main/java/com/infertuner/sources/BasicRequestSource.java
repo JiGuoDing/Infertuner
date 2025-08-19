@@ -58,6 +58,7 @@ public class BasicRequestSource implements SourceFunction<InferenceRequest> {
             }
             
             logger.info("生成请求 {}/{}: {}", i+1, maxRequests, requestId);
+            // logger.info("key: {}", Integer.parseInt(requestId.substring(4)) % 4);
             
             // 等待
             if (i < maxRequests - 1) {

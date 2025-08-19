@@ -3,10 +3,11 @@
 每次批处理调用都有固定的启动开销，攒批可以分摊这个开销
 """
 
-import torch
-import json
+import os
 import sys
+import json
 import time
+import torch
 import logging
 from pathlib import Path
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -59,8 +60,8 @@ class BatchInferenceServiceWithStartupCost:
 
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_path,
-                torch_dtype=torch.float16,
-                device_map={"": self.device},
+                torch_dtype=torch.bfloat16,
+                device_map="auto",
                 trust_remote_code=True,
                 low_cpu_mem_usage=True
             )
@@ -139,7 +140,8 @@ class BatchInferenceServiceWithStartupCost:
                 "batch_id": batch_id,
                 "total_inference_time_ms": round(total_batch_time, 2),
                 "success": True,
-                "timestamp": int(time.time() * 1000)
+                "timestamp": int(time.time() * 1000),
+                "error": "No error"
             }
 
             logger.info(f"✅ 批量处理完成: batch_id={batch_id}")
@@ -218,12 +220,15 @@ class BatchInferenceServiceWithStartupCost:
 
 def main():
     """主函数"""
-    if len(sys.argv) < 2:
-        logger.error("用法: python3 batch_inference_service.py <model_path> [gpu_id]")
+    if len(sys.argv) < 3:
+        logger.error("用法: python3 batch_inference_service.py <node_ip> <model_path> [gpu_id]")
         sys.exit(1)
 
-    model_path = sys.argv[1]
-    gpu_id = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+    node_ip = sys.argv[1]
+    model_path = sys.argv[2]
+    gpu_id = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+
+    os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
 
     # 检查环境
     if not Path(model_path).exists():
@@ -243,28 +248,42 @@ def main():
         logger.info("🚀 有启动开销的推理服务启动成功！")
         logger.info("💡 攒批优势: 多个请求共享固定的300ms服务启动开销")
 
+        """
+            private static class BatchRequestData {
+                public List<SingleRequestData> requests;
+                public int batch_size;
+                public String batch_id;
+            }
+
+            private static class SingleRequestData {
+                public String user_message;
+                public int max_tokens;
+                public String request_id;
+            }
+        """
+
         for line_num, line in enumerate(sys.stdin, 1):
             line = line.strip()
             if not line:
                 continue
 
             try:
-                request_data = json.loads(line)
+                batch_request_data = json.loads(line)
 
-                command = request_data.get("command")
-
-                if command == "stats":
-                    stats = service.get_stats()
-                    print(json.dumps({"stats": stats}))
-                    sys.stdout.flush()
-                    continue
-
-                if command == "shutdown":
-                    logger.info("收到关闭命令")
-                    break
+#                 command = batch_request_data.get("command")
+#
+#                 if command == "stats":
+#                     stats = service.get_stats()
+#                     print(json.dumps({"stats": stats}))
+#                     sys.stdout.flush()
+#                     continue
+#
+#                 if command == "shutdown":
+#                     logger.info("收到关闭命令")
+#                     break
 
                 # 处理攒批请求
-                result = service.batch_generate_response(request_data)
+                result = service.batch_generate_response(batch_request_data)
 
                 print(json.dumps(result))
                 sys.stdout.flush()

@@ -86,9 +86,9 @@ public class UnifiedPerformanceSink implements SinkFunction<InferenceResponse> {
             for (String part : parts) {
                 part = part.trim();
                 if (part.endsWith("nodes")) {
-                    return Integer.parseInt(part.replace("nodes", ""));
+                    return Integer.parseInt(part.replace("nodes", "").trim());
                 } else if (part.startsWith("batch")) {
-                    return 1; // batch实验是单并行度
+                    return 4; // batch实验是4并行度
                 }
             }
         } catch (Exception e) {
@@ -131,7 +131,7 @@ public class UnifiedPerformanceSink implements SinkFunction<InferenceResponse> {
 
         logger.info("globalCount: {}, totalExpectedRequests: {}", globalCount, totalExpectedRequests);
         // 日志输出
-        if (localCount <= 5 || localCount % 5 == 0) {
+        if (localCount % 10 == 0) {
             logger.info("结果 #{}: {} | {}", globalCount, response.requestId,
                     response.success ? "✅" : "❌");
             outputGlobalFinalStats();
@@ -172,7 +172,7 @@ public class UnifiedPerformanceSink implements SinkFunction<InferenceResponse> {
         logger.info("================================================");
         logger.info("总请求: {}", total);
         logger.info("成功请求: {}", success);
-        logger.info("吞吐量: {}req/s", String.format("%.2f", throughput));
+        logger.info("吞吐量: {}req/s", String.format("%.4f", throughput));
         logger.info("平均延迟: {}ms", Math.round(avgLatency));
         logger.info("平均等待: {}ms", Math.round(avgWait));
         logger.info("平均推理: {}ms", Math.round(avgInference));

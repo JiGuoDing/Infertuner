@@ -2,6 +2,7 @@ package com.infertuner.jobs;
 
 import com.infertuner.models.InferenceRequest;
 import com.infertuner.models.InferenceResponse;
+import com.infertuner.processors.KeyedProcessFunctionBatchProcessor;
 import com.infertuner.processors.ProcessFunctionBatchProcessor;
 import com.infertuner.sinks.UnifiedPerformanceSink;
 import com.infertuner.sources.BasicRequestSource;
@@ -10,6 +11,8 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 基于数量的真实攒批分析作业
@@ -68,17 +71,16 @@ public class CountBasedBatchAnalysisJob {
                 .name("Count Batch Request Source");
 
         // 🔧 关键：使用keyBy确保所有请求到同一个ProcessFunction实例
-        DataStream<InferenceResponse> responses = requests
-                .keyBy(request -> "batch_key") // 统一key，确保攒批有效
-                .process(new ProcessFunctionBatchProcessor()) // 🎯 真正的数量攒批
+        DataStream<InferenceResponse> responses = requests.rebalance().keyBy(req -> Integer.parseInt(req.getRequestId().substring(4)))
+                .process(new KeyedProcessFunctionBatchProcessor())
                 .name("Count Based Batch Processor");
 
         // 使用统一性能统计
-        String experimentId = String.format("batch%d_%dreq", batchSize, maxRequests);
-        responses.addSink(new UnifiedPerformanceSink(
+        String experimentId = String.format("%d batch - %d requests", batchSize, maxRequests);
+        responses.keyBy(r -> 0).addSink(new UnifiedPerformanceSink(
                         UnifiedPerformanceSink.ExperimentType.BATCH_ANALYSIS,
                         experimentId))
-                .name("Count Batch Performance Sink");
+                .name("Count Batch Performance Sink").setParallelism(1);
 
         logger.info("🚀 基于数量的真实攒批流水线构建完成");
         logger.info("📊 核心优势:");

@@ -8,28 +8,22 @@ import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.api.common.state.ValueState;
 import org.apache.flink.api.common.state.ValueStateDescriptor;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.streaming.api.functions.ProcessFunction;
+import org.apache.flink.streaming.api.functions.KeyedProcessFunction;
 import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
+import java.io.*;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
  * 简化的ProcessFunction攒批处理器，基于 Flink KeyedProcessFunction 实现。
  */
-public class ProcessFunctionBatchProcessor extends ProcessFunction<InferenceRequest, InferenceResponse> {
+public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Integer, InferenceRequest, InferenceResponse> {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProcessFunctionBatchProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(KeyedProcessFunctionBatchProcessor.class);
 
     // GPU相关
     private int gpuId;
@@ -210,11 +204,11 @@ public class ProcessFunctionBatchProcessor extends ProcessFunction<InferenceRequ
         if ("数量触发".equals(triggerReason) && !arrivalTimes.isEmpty()) {
             // 数量触发：触发时间 = 最后一个请求的到达时间
             realBatchTriggerTime = arrivalTimes.get(arrivalTimes.size() - 1);
-            logger.info("🔍 数量触发时间修正: 使用最后请求时间 {}", new Date(realBatchTriggerTime));
+            logger.info("🔍 数量触发时间修正: 使用最后请求时间 {}", new java.util.Date(realBatchTriggerTime));
         } else {
             // 超时触发：使用当前时间
             realBatchTriggerTime = System.currentTimeMillis();
-            logger.info("🔍 超时触发时间: {}", new Date(realBatchTriggerTime));
+            logger.info("🔍 超时触发时间: {}", new java.util.Date(realBatchTriggerTime));
         }
 
         logger.info("🔥 节点 {} 批次#{} 开始: {} | {}个请求", nodeIP, currentBatchNum, triggerReason, batchSize);
@@ -308,8 +302,8 @@ public class ProcessFunctionBatchProcessor extends ProcessFunction<InferenceRequ
 
             // if (i < 3) { // 只打印前3个请求的详细信息
             logger.info("请求{}: 到达={}, 触发={}, 等待={}ms",
-                    i+1, new Date(requestArrivalTime),
-                    new Date(realBatchTriggerTime), waitTime);
+                    i+1, new java.util.Date(requestArrivalTime),
+                    new java.util.Date(realBatchTriggerTime), waitTime);
             // }
 
             // 输出响应
