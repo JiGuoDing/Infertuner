@@ -3,7 +3,6 @@ package com.infertuner.jobs;
 import com.infertuner.models.InferenceRequest;
 import com.infertuner.models.InferenceResponse;
 import com.infertuner.processors.KeyedProcessFunctionBatchProcessor;
-import com.infertuner.processors.ProcessFunctionBatchProcessor;
 import com.infertuner.sinks.UnifiedPerformanceSink;
 import com.infertuner.sources.BasicRequestSource;
 import org.apache.flink.configuration.Configuration;
@@ -11,8 +10,6 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 基于数量的真实攒批分析作业
@@ -67,11 +64,13 @@ public class CountBasedBatchAnalysisJob {
 
         // 构建基于数量的真实攒批流水线
         DataStream<InferenceRequest> requests = env
-                .addSource(new BasicRequestSource(maxRequests, interval, true)) // 🔧 设置为true，等待所有请求处理完成
+                .addSource(new BasicRequestSource(maxRequests, interval, true)) // 🔧 设置为true，等待所有请求处理x完成
                 .name("Count Batch Request Source");
 
-        // 🔧 关键：使用keyBy确保所有请求到同一个ProcessFunction实例
-        DataStream<InferenceResponse> responses = requests.rebalance().keyBy(req -> Integer.parseInt(req.getRequestId().substring(4)))
+        // 用request的requestID作为键，并且使用rebalance()进行负载均衡
+        // 注：通过keyBy获取key后，flink还会进行key分区，通过targetTaskIndex = hash(key) % numTasks得到下游subtask的索引
+        // 将key进行放大，防止flink内部键分区hash后请求落到固定几个subtask
+        DataStream<InferenceResponse> responses = requests.rebalance().keyBy(req -> (Integer.parseInt(req.getRequestId().substring(4)) % parallelism) * (parallelism > 0 ? parallelism-1 : 1))
                 .process(new KeyedProcessFunctionBatchProcessor())
                 .name("Count Based Batch Processor");
 

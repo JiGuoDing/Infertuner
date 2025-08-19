@@ -124,6 +124,12 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Int
 
     @Override
     public void processElement(InferenceRequest request, Context ctx, Collector<InferenceResponse> out) throws Exception {
+        /*
+        查看 key
+         */
+        Integer currentKey = ctx.getCurrentKey();
+        logger.info("处理请求 {}，当前Key: {}", request.requestId, currentKey);
+
         long arrivalTime = request.timestamp;
         long currentTime = System.currentTimeMillis();
 
@@ -142,6 +148,7 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Int
 
         for (InferenceRequest req : requestBuffer.get()) {
             currentRequests.add(req);
+            logger.info("requestId = {}", req.requestId);
         }
         for (Long time : arrivalTimes.get()) {
             currentArrivalTimes.add(time);
