@@ -25,6 +25,7 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Int
 
     private static final Logger logger = LoggerFactory.getLogger(KeyedProcessFunctionBatchProcessor.class);
 
+
     // GPU相关
     private int gpuId;
     private int taskIndex;
