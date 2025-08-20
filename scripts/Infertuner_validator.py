@@ -108,6 +108,7 @@ class DS2Algorithm:
             p_data = df_b1[df_b1['p'] == p]
             # DS2假设：在无backpressure时，实际吞吐量就是真实处理率
             avg_throughput = p_data['actual_throughput'].mean()
+            # 单实例的实际吞吐量（真实处理率）
             single_instance_rate = avg_throughput / p
             self.true_rate_per_instance[p] = single_instance_rate
             print(f"   p={p}: 单实例真实处理率={single_instance_rate:.3f} req/s")
@@ -117,15 +118,24 @@ class DS2Algorithm:
         DS2核心：估算真实处理率
         假设线性扩展：total_rate = single_instance_rate * parallelism
         """
+
+        # 如果是当前已知的并行度，直接返回线性扩展的真是处理率
         if parallelism in self.true_rate_per_instance:
             return self.true_rate_per_instance[parallelism] * parallelism
 
-        # 线性插值/外推
+        # 否则，进行线性插值估算
+        # 获取已知的并行度列表
         known_p = list(self.true_rate_per_instance.keys())
+        # 如果当前还没有性能数据
         if not known_p:
             return 1.0
 
-        # 使用最接近的配置
+        # 方案1.线性插值
+#         known_rates = [self.true_rate_per_instance[p] for p in known_p]
+#         estimated_single_rate = np.interp(parallelism, known_p, known_rates)
+#         return estimated_single_rate * parallelism
+
+        # 方案2.使用最接近的配置
         closest_p = min(known_p, key=lambda x: abs(x - parallelism))
         single_rate = self.true_rate_per_instance[closest_p]
         return single_rate * parallelism
@@ -155,16 +165,23 @@ class DS2Algorithm:
             # DS2约束检查
             throughput_ok = true_processing_rate >= target_rate * 0.95  # 5%容差
 
+            if not throughput_ok:
+                print(f"   ❌ p={p} 不满足吞吐量约束: 真实处理率={true_processing_rate:.2f}req/s < {target_rate * 0.95:.2f}req/s")
+                continue
+
             # 使用性能模型估算延迟
             pred_latency, _ = self.performance_model.predict(p, batch_size, target_rate)
             latency_ok = pred_latency <= target_slo
 
-            if throughput_ok and latency_ok:
-                cost = p  # GPU数量
-                config = Config(p, batch_size, cost, pred_latency, true_processing_rate)
-                feasible_configs.append(config)
-                print(f"   ✅ 可行: p={p}, b={batch_size}, 成本={cost}GPU, "
-                      f"真实处理率={true_processing_rate:.2f}req/s, 延迟≈{pred_latency:.0f}ms")
+            if not latency_ok:
+                print(f"   ❌ p={p} 不满足延迟约束: 预测延迟={pred_latency:.0f}ms > {target_slo:.0f}ms")
+                continue
+
+            cost = p  # GPU数量
+            config = Config(p, batch_size, cost, pred_latency, true_processing_rate)
+            feasible_configs.append(config)
+            print(f"   ✅ 可行: p={p}, b={batch_size}, 成本={cost}GPU, "
+                  f"真实处理率={true_processing_rate:.2f}req/s, 延迟≈{pred_latency:.0f}ms")
 
         if not feasible_configs:
             print(f"   ❌ DS2无可行配置")
@@ -206,12 +223,18 @@ class InferTunerAlgorithm:
 
                 # 约束检查
                 throughput_ok = pred_throughput >= target_rate * 0.95  # 5%容差
-                latency_ok = pred_latency <= target_slo
+                if not throughput_ok:
+                    print(f"   ❌ p={p} 不满足吞吐量约束: 预测处理率={pred_throughput:.2f}req/s < {target_rate * 0.95:.2f}req/s")
+                    continue
 
-                if throughput_ok and latency_ok:
-                    cost = p  # GPU数量作为成本
-                    config = Config(p, b, cost, pred_latency, pred_throughput)
-                    feasible_configs.append(config)
+                latency_ok = pred_latency <= target_slo
+                if not latency_ok:
+                    print(f"   ❌ p={p} 不满足延迟约束: 预测延迟={pred_latency:.0f}ms > {target_slo:.0f}ms")
+                    continue
+
+                cost = p  # GPU数量作为成本
+                config = Config(p, b, cost, pred_latency, pred_throughput)
+                feasible_configs.append(config)
 
         return feasible_configs
 

@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -25,6 +24,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
 
     // GPU相关
     private int gpuId;
+    private String nodeIP;
     private int taskIndex;
     private int totalParallelism;
     private transient Process inferenceProcess;  // 标记为transient
@@ -43,9 +43,9 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     private transient volatile int batchCounter = 0;
     private transient Object batchLock;
 
-    private static final String MODEL_PATH = "/workspace/models/Qwen1.5-1.8B-Chat";
-    private static final String BATCH_SERVICE_SCRIPT = "/workspace/infertuner/scripts/batch_inference_service.py";
-    private static final int MAX_GPUS = 4;
+    private static final String MODEL_NAME = "Qwen3-30B-A3B-Instruct";
+    private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/".concat(MODEL_NAME);
+    private static final String BATCH_SERVICE_SCRIPT = "/mnt/tidal-alsh01/usr/suqian/scripts/batch_inference_service.py";
 
     @Override
     public void open(Configuration parameters) throws Exception {
@@ -59,7 +59,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
 
         taskIndex = getRuntimeContext().getIndexOfThisSubtask();
         totalParallelism = getRuntimeContext().getNumberOfParallelSubtasks();
-        gpuId = taskIndex % MAX_GPUS;
+        gpuId = 0;
 
         // 从全局参数获取配置
         try {
@@ -76,22 +76,22 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             logger.warn("使用默认配置: batchSize={}, maxWait={}ms", targetBatchSize, maxWaitTimeMs);
         }
 
-        logger.info("🎯 GPU {} 简化并行攒批处理器启动: 并行度={}, 批大小={}, 超时={}ms",
-                gpuId, totalParallelism, targetBatchSize, maxWaitTimeMs);
-        logger.info("📋 GPU {} 负责处理: taskIndex={}, 使用内存缓冲区", gpuId, taskIndex);
+        logger.info("🎯 节点 {} 简化并行攒批处理器启动: 并行度={}, 批大小={}, 超时={}ms",
+                nodeIP, totalParallelism, targetBatchSize, maxWaitTimeMs);
+        logger.info("📋 节点 {} 负责处理: taskIndex={}, 使用内存缓冲区", nodeIP, taskIndex);
 
         objectMapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         // 启动GPU服务
         startGPUService();
 
-        logger.info("✅ GPU {} 简化并行攒批服务启动完成", gpuId);
+        logger.info("✅ 节点 {} 简化并行攒批服务启动完成", nodeIP);
     }
 
     private void startGPUService() throws Exception {
-        logger.info("启动 GPU {} 推理服务...", gpuId);
+        logger.info("启动 节点 {} 推理服务...", nodeIP);
 
-        ProcessBuilder pb = new ProcessBuilder("python3", BATCH_SERVICE_SCRIPT, MODEL_PATH, String.valueOf(gpuId));
+        ProcessBuilder pb = new ProcessBuilder("/opt/conda/envs/vllm-env/bin/python", BATCH_SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId));
         pb.redirectErrorStream(false);
         inferenceProcess = pb.start();
 
@@ -99,14 +99,14 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         processOutput = new BufferedReader(new InputStreamReader(inferenceProcess.getInputStream()));
 
         // 等待服务启动
-        logger.info("等待 GPU {} 服务启动...", gpuId);
+        logger.info("等待节点 {} 服务启动...", nodeIP);
         Thread.sleep(3000);
 
         if (!inferenceProcess.isAlive()) {
-            throw new RuntimeException("GPU " + gpuId + " 推理服务启动失败");
+            throw new RuntimeException("节点 " + nodeIP + " 推理服务启动失败");
         }
 
-        logger.info("✅ GPU {} 推理服务启动成功", gpuId);
+        logger.info("✅ 节点 {} 推理服务启动成功", nodeIP);
     }
 
     @Override
@@ -123,12 +123,12 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             // 记录第一个请求时间
             if (currentSize == 1) {
                 firstRequestTime = arrivalTime;
-                logger.info("GPU {} 开始新批次: {} (1/{}) - rebalance分发", gpuId, request.requestId, targetBatchSize);
+                logger.info("节点 {} 开始新批次: {} (1/{}) - rebalance分发", nodeIP, request.requestId, targetBatchSize);
             }
 
-            // 🔧 修复：检查是否攒够了 - 如果批大小为1，立即处理
+            // 🔧 修复：检查是否攒够了批次
             if (currentSize >= targetBatchSize) {
-                logger.info("🚀 GPU {} 攒够{}个请求，开始处理", gpuId, targetBatchSize);
+                logger.info("🚀 节点 {} 攒够{}个请求，开始处理", nodeIP, targetBatchSize);
                 processBatch(out, "数量触发");
             }
         }
@@ -160,14 +160,14 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         if ("数量触发".equals(triggerReason) && !batchArrivalTimes.isEmpty()) {
             // 数量触发：使用最后一个请求的到达时间作为触发时间
             realBatchTriggerTime = batchArrivalTimes.get(batchArrivalTimes.size() - 1);
-            logger.info("🔥 GPU {} 批次#{} 开始: {} | {}个请求 (触发时间={})",
-                    gpuId, currentBatchNum, triggerReason, batchSize,
+            logger.info("🔥 节点 {} 批次#{} 开始: {} | {}个请求 (触发时间={})",
+                    nodeIP, currentBatchNum, triggerReason, batchSize,
                     new java.util.Date(realBatchTriggerTime));
         } else {
             // 超时触发：使用当前时间
             realBatchTriggerTime = System.currentTimeMillis();
-            logger.info("🔥 GPU {} 批次#{} 开始: {} | {}个请求 (触发时间={})",
-                    gpuId, currentBatchNum, triggerReason, batchSize,
+            logger.info("🔥 节点 {} 批次#{} 开始: {} | {}个请求 (触发时间={})",
+                    nodeIP, currentBatchNum, triggerReason, batchSize,
                     new java.util.Date(realBatchTriggerTime));
         }
 
@@ -178,13 +178,14 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         for (InferenceRequest req : batch) {
             SingleRequestData singleReq = new SingleRequestData();
             singleReq.user_message = req.userMessage;
+            singleReq.userId = req.getUserId();
             singleReq.max_tokens = req.maxTokens;
             singleReq.request_id = req.requestId;
             batchRequest.requests.add(singleReq);
         }
 
         batchRequest.batch_size = batchSize;
-        batchRequest.batch_id = String.format("gpu%d_batch_%d_%d", gpuId, currentBatchNum, realBatchTriggerTime);
+        batchRequest.batch_id = String.format("node-%s_batch_%d_%d", nodeIP, currentBatchNum, realBatchTriggerTime);
 
         // 发送到GPU服务并获取响应
         long batchStartTime = System.currentTimeMillis();
@@ -193,23 +194,24 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         processInput.write(requestJson + "\n");
         processInput.flush();
 
+        // 从推理进程获取响应
         String responseJson = processOutput.readLine();
         if (responseJson == null) {
-            throw new RuntimeException("GPU " + gpuId + " 无响应");
+            throw new RuntimeException("节点 " + nodeIP + " 无响应");
         }
 
         BatchResponseData batchResponse = objectMapper.readValue(responseJson, BatchResponseData.class);
 
         if (!batchResponse.success) {
-            throw new RuntimeException("GPU " + gpuId + " 处理失败: " + batchResponse.error);
+            throw new RuntimeException("节点 " + nodeIP + " 处理失败: " + batchResponse.error);
         }
 
         long batchEndTime = System.currentTimeMillis();
         long totalProcessTime = batchEndTime - batchStartTime;
         double avgProcessTimePerRequest = (double) totalProcessTime / batchSize;
 
-        logger.info("📊 GPU {} 批次#{} 完成: 总时间={}ms, 平均={}ms/req",
-                gpuId, currentBatchNum, totalProcessTime, String.format("%.1f", avgProcessTimePerRequest));
+        logger.info("📊 节点 {} 批次#{} 完成: 总时间={}ms, 平均={}ms/req",
+                nodeIP, currentBatchNum, totalProcessTime, String.format("%.4f", avgProcessTimePerRequest));
 
         // 生成响应并输出
         for (int i = 0; i < batch.size(); i++) {
@@ -224,7 +226,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             response.aiResponse = singleResp.response;
             response.inferenceTimeMs = avgProcessTimePerRequest;
             response.success = singleResp.success;
-            response.modelName = String.format("GPU-%d", gpuId);
+            response.modelName = String.format("node-%s", nodeIP);
             response.fromCache = false;
             response.batchSize = batchSize;
             response.timestamp = batchEndTime;
@@ -242,12 +244,12 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             out.collect(response);
         }
 
-        logger.info("✅ GPU {} 批次#{} 输出{}个响应", gpuId, currentBatchNum, batchSize);
+        logger.info("✅ 节点 {} 批次#{} 输出{}个响应", nodeIP, currentBatchNum, batchSize);
     }
 
     @Override
     public void close() throws Exception {
-        logger.info("关闭 GPU {} 服务...", gpuId);
+        logger.info("关闭节点 {} 服务...", nodeIP);
 
         try {
             if (processInput != null) {
@@ -268,10 +270,10 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
                 }
             }
         } catch (Exception e) {
-            logger.error("关闭GPU服务出错: {}", e.getMessage());
+            logger.error("关闭节点 -{} 服务出错: {}", nodeIP, e.getMessage());
         }
 
-        logger.info("✅ GPU {} 服务已关闭", gpuId);
+        logger.info("✅ 节点 -{} 服务已关闭", nodeIP);
         super.close();
     }
 
@@ -283,6 +285,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     }
 
     private static class SingleRequestData {
+        public String userId;
         public String user_message;
         public int max_tokens;
         public String request_id;

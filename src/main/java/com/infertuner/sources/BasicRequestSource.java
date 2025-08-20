@@ -39,7 +39,7 @@ public class BasicRequestSource implements SourceFunction<InferenceRequest> {
         this.interval = interval;
     }
 
-    public BasicRequestSource(int maxRequests, long interval, int parallelism) {
+    public BasicRequestSource(int maxRequests, long interval, boolean enableBurst, int parallelism) {
         this.maxRequests = maxRequests;
         this.interval = interval;
         this.parallelism = parallelism;
@@ -52,7 +52,7 @@ public class BasicRequestSource implements SourceFunction<InferenceRequest> {
         for (int i = 0; i < maxRequests && isRunning; i++) {
             // 生成请求
             String requestId = String.format("req_%03d", i);
-            String userId = users[random.nextInt(users.length) % (parallelism > 0 ? parallelism : users.length)];
+            String userId = users[random.nextInt(users.length)];
             String question = questions[random.nextInt(questions.length)];
             int maxTokens = 50 + random.nextInt(100); // 50-150 tokens
             int batchSize = 1 + random.nextInt(3);    // 1-3
@@ -65,7 +65,6 @@ public class BasicRequestSource implements SourceFunction<InferenceRequest> {
             }
             
             logger.info("生成请求 {}/{}: {}", i+1, maxRequests, requestId);
-            // logger.info("key: {}", Integer.parseInt(requestId.substring(4)) % 4);
             
             // 等待
             if (i < maxRequests - 1) {

@@ -68,9 +68,9 @@ public class JointOptimizationJob {
         double theoreticalAvgWaitTime = (batchSize - 1) * interval / 2.0; // 平均等待时间
 
         logger.info("📈 理论性能预测:");
-        logger.info("  单GPU吞吐量: {:.2f} req/s", theoreticalThroughputPerGpu);
-        logger.info("  总吞吐量: {:.2f} req/s", theoreticalTotalThroughput);
-        logger.info("  平均等待时间: {:.1f}ms", theoreticalAvgWaitTime);
+        logger.info("  单GPU吞吐量: {} req/s", theoreticalThroughputPerGpu);
+        logger.info("  总吞吐量: {} req/s", theoreticalTotalThroughput);
+        logger.info("  平均等待时间: {}ms", theoreticalAvgWaitTime);
 
         // 构建并行批处理流水线
         DataStream<InferenceRequest> requests = env
@@ -79,8 +79,8 @@ public class JointOptimizationJob {
 
         // 尝试方案2：使用rebalance()自动负载均衡，避免keyBy的问题
         DataStream<InferenceResponse> responses = requests
-                .rebalance()  // Flink自动轮询分发
-                .process(new ParallelBatchProcessor())  // 使用修复后的处理器
+                .rebalance()
+                .process(new ParallelBatchProcessor())
                 .name("Parallel Batch Processor");
 
         // 使用专门的联合优化性能统计
