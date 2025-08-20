@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * 简化的ProcessFunction攒批处理器，基于 Flink KeyedProcessFunction 实现。
  */
-public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Integer, InferenceRequest, InferenceResponse> {
+public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<String, InferenceRequest, InferenceResponse> {
 
     private static final Logger logger = LoggerFactory.getLogger(KeyedProcessFunctionBatchProcessor.class);
 
@@ -89,6 +89,8 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Int
         batchCounter = getRuntimeContext().getState(
                 new ValueStateDescriptor<>("batch-counter", Integer.class));
 
+        //
+
         logger.info("🎯 Node {} 攒批处理器启动: 批大小={}, 超时={}ms", nodeIP, targetBatchSize, maxWaitTimeMs);
 
         objectMapper = new ObjectMapper();
@@ -104,8 +106,7 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Int
         logger.info("启动节点 {} 推理服务...", nodeIP);
 
         ProcessBuilder pb = new ProcessBuilder(
-                "/opt/conda/envs/vllm-env/bin/python", BATCH_SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId)
-        );
+                "/opt/conda/envs/vllm-env/bin/python", BATCH_SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId));
         pb.redirectErrorStream(false);
         inferenceProcess = pb.start();
 
@@ -128,7 +129,7 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Int
         /*
         查看 key
          */
-        Integer currentKey = ctx.getCurrentKey();
+        String currentKey = ctx.getCurrentKey();
         logger.info("处理请求 {}，当前Key: {}", request.requestId, currentKey);
 
         long arrivalTime = request.timestamp;

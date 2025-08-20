@@ -1,23 +1,31 @@
 package com.infertuner.sinks;
 
 import com.infertuner.models.InferenceResponse;
-import org.apache.flink.streaming.api.functions.sink.SinkFunction;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.core.fs.FSDataOutputStream;
+import org.apache.flink.core.fs.FileSystem;
+import org.apache.flink.core.fs.Path;
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * p×b联合优化性能统计汇聚器
- *
  * 核心功能：
  * 1. 收集并行度(p)和批大小(b)的联合性能数据
  * 2. 统计每个GPU的处理情况和负载均衡
  * 3. 生成用于参数优化的详细指标
  */
-public class JointOptimizationSink implements SinkFunction<InferenceResponse> {
+public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
 
     private static final Logger logger = LoggerFactory.getLogger(JointOptimizationSink.class);
 
@@ -33,8 +41,26 @@ public class JointOptimizationSink implements SinkFunction<InferenceResponse> {
     private static final AtomicLong globalTotalLatency = new AtomicLong(0);
     private static final AtomicInteger globalTotalBatches = new AtomicInteger(0);
 
-    // GPU分布统计
-    private static final ConcurrentHashMap<String, AtomicInteger> gpuRequestCounts = new ConcurrentHashMap<>();
+    private static final String[] CSV_HEADER = {
+        "experiment_id",
+        "parallelism",
+        "batch_size",
+        "total_requests",
+        "success_requests",
+        "success_rate_pct",
+        "throughput_rps",
+        "avg_latency_ms",
+        "avg_wait_ms",
+        "avg_inference_ms",
+        "processing_time_sec",
+        "actual_batches",
+        "avg_batch_size",
+        "load_balance_pct",
+        "resource_utilization_pct"
+    };
+
+    // 节点分布统计
+    private static final ConcurrentHashMap<String, AtomicInteger> nodeRequestsCount = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer, AtomicInteger> batchSizeDistribution = new ConcurrentHashMap<>();
 
     // 时间跟踪
@@ -63,7 +89,7 @@ public class JointOptimizationSink implements SinkFunction<InferenceResponse> {
             globalTotalWaitTime.set(0);
             globalTotalLatency.set(0);
             globalTotalBatches.set(0);
-            gpuRequestCounts.clear();
+            nodeRequestsCount.clear();
             batchSizeDistribution.clear();
             globalStartTime = System.currentTimeMillis();
             globalFirstResponseTime = 0;
@@ -74,6 +100,40 @@ public class JointOptimizationSink implements SinkFunction<InferenceResponse> {
         logger.info("p×b联合优化统计初始化: 实验={}, p={}, b={}, 预期请求={}",
                 experimentId, parallelism, batchSize, expectedTotalRequests);
     }
+
+    @Override
+    public void open(Configuration parameters) throws Exception {
+        super.open(parameters);
+
+        // 1. 获取输出目录（支持在 flink-conf.yaml 中覆盖）
+        Configuration cfg = (Configuration) getRuntimeContext()
+                .getExecutionConfig().getGlobalJobParameters();
+        String baseDir = cfg.getString(
+                "pipeline.job-experiment.output-dir",
+                "/tmp/flink-exp-results"
+        );
+
+        FileSystem fs = FileSystem.get(new URI(baseDir));
+        Path dir = new Path(baseDir);
+
+        // 2. 确保目录存在
+        fs.mkdirs(dir);
+
+        // 3. 生成输出文件路径
+        String safeExperimentId = experimentId.replaceAll("[^a-zA-Z0-9\\-]", "_");
+        Path csvPath = new Path(dir, String.format("p%db%d_%s.csv", parallelism, batchSize, safeExperimentId));
+
+        // 4. 如果文件不存在则写入表头
+        if (!fs.exists(csvPath)) {
+            try (
+                    FSDataOutputStream out = fs.create(csvPath, FileSystem.WriteMode.NO_OVERWRITE);
+                    PrintWriter pw = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))
+            ) {
+                pw.println(String.join(",", CSV_HEADER));
+            }
+        }
+    }
+
 
     private int parseExpectedRequestsFromId(String experimentId) {
         try {
@@ -88,11 +148,11 @@ public class JointOptimizationSink implements SinkFunction<InferenceResponse> {
         } catch (Exception e) {
             // 静默处理
         }
-        return parallelism * batchSize * 6; // 默认每GPU 6个批次
+        return parallelism * batchSize * 6;
     }
 
     @Override
-    public void invoke(InferenceResponse response, Context context) throws Exception {
+    public void invoke(InferenceResponse response, Context context) {
         long currentTime = System.currentTimeMillis();
 
         int globalCount = globalTotalRequests.incrementAndGet();
@@ -123,17 +183,17 @@ public class JointOptimizationSink implements SinkFunction<InferenceResponse> {
             }
         }
 
-        // 统计GPU分布
-        String gpuKey = response.modelName != null ? response.modelName : "Unknown-GPU";
-        gpuRequestCounts.computeIfAbsent(gpuKey, k -> new AtomicInteger(0)).incrementAndGet();
+        // 统计节点分布
+        String nodeIP = response.modelName != null ? response.modelName : "Unknown-GPU";
+        nodeRequestsCount.computeIfAbsent(nodeIP, k -> new AtomicInteger(0)).incrementAndGet();
 
         // 统计批大小分布
         batchSizeDistribution.computeIfAbsent(response.batchSize, k -> new AtomicInteger(0)).incrementAndGet();
 
         // 日志输出
-        if (localCount <= 3 || localCount % 25 == 0) {
-            logger.info("响应 #{}: {} | GPU: {} | 批大小: {} | 等待: {}ms | {}",
-                    globalCount, response.requestId, gpuKey, response.batchSize,
+        if (localCount % 10 == 0) {
+            logger.info("响应 #{}: {} | 节点: {} | 批大小: {} | 等待: {}ms | {}",
+                    globalCount, response.requestId, nodeIP, response.batchSize,
                     response.waitTimeMs, response.success ? "✅" : "❌");
         }
 
@@ -179,7 +239,7 @@ public class JointOptimizationSink implements SinkFunction<InferenceResponse> {
         double successRate = total > 0 ? (success * 100.0) / total : 0.0;
 
         // 计算GPU负载均衡指标
-        double gpuLoadBalance = calculateGpuLoadBalance();
+        double gpuLoadBalance = calculateLoadBalance();
         int actualBatches = calculateActualBatches();
         double avgBatchSize = actualBatches > 0 ? (double) success / actualBatches : 0.0;
 
@@ -209,18 +269,18 @@ public class JointOptimizationSink implements SinkFunction<InferenceResponse> {
         logger.info("  批大小(b): {}", batchSize);
         logger.info("  实际批次数: {}", actualBatches);
         logger.info("  平均批大小: {}", String.format("%.1f", avgBatchSize));
-        logger.info("  GPU负载均衡: {}%", String.format("%.1f", gpuLoadBalance));
+        logger.info("  负载均衡: {}%", String.format("%.1f", gpuLoadBalance));
         logger.info("  资源利用率: {}%", String.format("%.1f", resourceUtilization));
         logger.info("------------------------------------------------");
-        logger.info("📊 GPU分布:");
-        gpuRequestCounts.forEach((gpu, count) -> {
+        logger.info("📊 请求分布:");
+        nodeRequestsCount.forEach((node, count) -> {
             double percentage = total > 0 ? (count.get() * 100.0) / total : 0.0;
-            logger.info("  {}: {} 请求 ({}%)", gpu, count.get(), String.format("%.1f", percentage));
+            logger.info("  节点{}: {} 请求 ({}%)", node, count.get(), String.format("%.1f", percentage));
         });
         logger.info("------------------------------------------------");
         logger.info("📦 批大小分布:");
         batchSizeDistribution.entrySet().stream()
-                .sorted((e1, e2) -> e1.getKey().compareTo(e2.getKey()))
+                .sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> {
                     double percentage = total > 0 ? (entry.getValue().get() * 100.0) / total : 0.0;
                     logger.info("  批大小{}: {} 请求 ({}%)",
@@ -237,18 +297,18 @@ public class JointOptimizationSink implements SinkFunction<InferenceResponse> {
         logger.info("================================================");
     }
 
-    private double calculateGpuLoadBalance() {
-        if (gpuRequestCounts.isEmpty()) return 0.0;
+    private double calculateLoadBalance() {
+        if (nodeRequestsCount.isEmpty()) return 0.0;
 
         int total = globalTotalRequests.get();
         double idealRequestsPerGpu = (double) total / parallelism;
 
         double variance = 0.0;
-        for (AtomicInteger count : gpuRequestCounts.values()) {
+        for (AtomicInteger count : nodeRequestsCount.values()) {
             double diff = count.get() - idealRequestsPerGpu;
             variance += diff * diff;
         }
-        variance /= gpuRequestCounts.size();
+        variance /= nodeRequestsCount.size();
 
         double standardDeviation = Math.sqrt(variance);
         double coefficientOfVariation = idealRequestsPerGpu > 0 ? standardDeviation / idealRequestsPerGpu : 0.0;

@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -34,14 +35,12 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
 
     // 攒批配置
     private int targetBatchSize = 4;
-    private long maxWaitTimeMs = 3000;
 
     // 内存缓冲区- 在open()中初始化
     private transient Queue<InferenceRequest> requestBuffer;
     private transient Queue<Long> arrivalTimes;
-    private transient volatile long firstRequestTime = 0;
-    private transient volatile int batchCounter = 0;
-    private transient Object batchLock;
+    private transient long firstRequestTime = 0;
+    private transient int batchCounter = 0;
 
     private static final String MODEL_NAME = "Qwen3-30B-A3B-Instruct";
     private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/".concat(MODEL_NAME);
@@ -54,12 +53,19 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         // 初始化transient字段
         requestBuffer = new ConcurrentLinkedQueue<>();
         arrivalTimes = new ConcurrentLinkedQueue<>();
-        batchLock = new Object();
         objectMapper = new ObjectMapper();
 
         taskIndex = getRuntimeContext().getIndexOfThisSubtask();
         totalParallelism = getRuntimeContext().getNumberOfParallelSubtasks();
         gpuId = 0;
+
+        // 获取的当前节点IP
+        try {
+            nodeIP = java.net.InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            logger.error("获取当前节点IP失败", e);
+            nodeIP = "Unknown-hostIP";
+        }
 
         // 从全局参数获取配置
         try {
@@ -69,29 +75,27 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             if (globalParams.containsKey("batch.size")) {
                 targetBatchSize = Integer.parseInt(globalParams.get("batch.size"));
             }
-            if (globalParams.containsKey("max.wait.ms")) {
-                maxWaitTimeMs = Long.parseLong(globalParams.get("max.wait.ms"));
-            }
         } catch (Exception e) {
-            logger.warn("使用默认配置: batchSize={}, maxWait={}ms", targetBatchSize, maxWaitTimeMs);
+            logger.warn("使用默认配置: batchSize={}", targetBatchSize);
         }
 
-        logger.info("🎯 节点 {} 简化并行攒批处理器启动: 并行度={}, 批大小={}, 超时={}ms",
-                nodeIP, totalParallelism, targetBatchSize, maxWaitTimeMs);
+        logger.info("🎯 节点 {} 简化并行攒批处理器启动: 并行度={}, 批大小={}",
+                nodeIP, totalParallelism, targetBatchSize);
         logger.info("📋 节点 {} 负责处理: taskIndex={}, 使用内存缓冲区", nodeIP, taskIndex);
 
         objectMapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        // 启动GPU服务
+        // 启动内联推理服务进程
         startGPUService();
 
         logger.info("✅ 节点 {} 简化并行攒批服务启动完成", nodeIP);
     }
 
     private void startGPUService() throws Exception {
-        logger.info("启动 节点 {} 推理服务...", nodeIP);
+        logger.info("启动节点 {} 推理服务...", nodeIP);
 
-        ProcessBuilder pb = new ProcessBuilder("/opt/conda/envs/vllm-env/bin/python", BATCH_SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId));
+        ProcessBuilder pb = new ProcessBuilder(
+                "/opt/conda/envs/vllm-env/bin/python", BATCH_SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId));
         pb.redirectErrorStream(false);
         inferenceProcess = pb.start();
 
@@ -113,33 +117,31 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     public void processElement(InferenceRequest request, Context ctx, Collector<InferenceResponse> out) throws Exception {
         long arrivalTime = request.timestamp;
 
-        synchronized (batchLock) {
-            // 将请求加入缓冲区
-            requestBuffer.offer(request);
-            arrivalTimes.offer(arrivalTime);
+        // 将请求加入缓冲区
+        requestBuffer.offer(request);
+        arrivalTimes.offer(arrivalTime);
 
-            int currentSize = requestBuffer.size();
+        int currentSize = requestBuffer.size();
 
-            // 记录第一个请求时间
-            if (currentSize == 1) {
-                firstRequestTime = arrivalTime;
-                logger.info("节点 {} 开始新批次: {} (1/{}) - rebalance分发", nodeIP, request.requestId, targetBatchSize);
-            }
+        // 记录批次中第一个请求时间
+        if (currentSize == 1) {
+            firstRequestTime = arrivalTime;
+            logger.info("节点 {} 开始新批次: {} (1/{}) - rebalance分发", nodeIP, request.requestId, targetBatchSize);
+        }
 
-            // 🔧 修复：检查是否攒够了批次
-            if (currentSize >= targetBatchSize) {
-                logger.info("🚀 节点 {} 攒够{}个请求，开始处理", nodeIP, targetBatchSize);
-                processBatch(out, "数量触发");
-            }
+        // 修复：检查是否攒够了批次
+        if (currentSize >= targetBatchSize) {
+            logger.info("🚀 节点 {} 攒够{}个请求，开始处理", nodeIP, targetBatchSize);
+            processBatch(out);
         }
     }
 
-    private void processBatch(Collector<InferenceResponse> out, String triggerReason) throws Exception {
+    private void processBatch(Collector<InferenceResponse> out) throws Exception {
         List<InferenceRequest> batch = new ArrayList<>();
         List<Long> batchArrivalTimes = new ArrayList<>();
 
         // 提取批次请求
-        for (int i = 0; i < targetBatchSize && !requestBuffer.isEmpty(); i++) {
+        for (int i = 0; i < targetBatchSize; i++) {
             InferenceRequest req = requestBuffer.poll();
             Long arrivalTime = arrivalTimes.poll();
             if (req != null && arrivalTime != null) {
@@ -154,24 +156,9 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
 
         int batchSize = batch.size();
         int currentBatchNum = ++batchCounter;
+        long batchTriggerTime = batchArrivalTimes.get(targetBatchSize-1);
 
-        // 🔧 修复批次触发时间计算
-        long realBatchTriggerTime;
-        if ("数量触发".equals(triggerReason) && !batchArrivalTimes.isEmpty()) {
-            // 数量触发：使用最后一个请求的到达时间作为触发时间
-            realBatchTriggerTime = batchArrivalTimes.get(batchArrivalTimes.size() - 1);
-            logger.info("🔥 节点 {} 批次#{} 开始: {} | {}个请求 (触发时间={})",
-                    nodeIP, currentBatchNum, triggerReason, batchSize,
-                    new java.util.Date(realBatchTriggerTime));
-        } else {
-            // 超时触发：使用当前时间
-            realBatchTriggerTime = System.currentTimeMillis();
-            logger.info("🔥 节点 {} 批次#{} 开始: {} | {}个请求 (触发时间={})",
-                    nodeIP, currentBatchNum, triggerReason, batchSize,
-                    new java.util.Date(realBatchTriggerTime));
-        }
-
-        // 构建批量请求
+        // 构建批次请求
         BatchRequestData batchRequest = new BatchRequestData();
         batchRequest.requests = new ArrayList<>();
 
@@ -185,14 +172,13 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         }
 
         batchRequest.batch_size = batchSize;
-        batchRequest.batch_id = String.format("node-%s_batch_%d_%d", nodeIP, currentBatchNum, realBatchTriggerTime);
-
-        // 发送到GPU服务并获取响应
-        long batchStartTime = System.currentTimeMillis();
+        batchRequest.batch_id = String.format("node-%s_batch_%d_%d", nodeIP, currentBatchNum, batchTriggerTime);
 
         String requestJson = objectMapper.writeValueAsString(batchRequest);
         processInput.write(requestJson + "\n");
         processInput.flush();
+
+        long batchStartTime = System.currentTimeMillis();
 
         // 从推理进程获取响应
         String responseJson = processOutput.readLine();
@@ -207,11 +193,11 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         }
 
         long batchEndTime = System.currentTimeMillis();
-        long totalProcessTime = batchEndTime - batchStartTime;
-        double avgProcessTimePerRequest = (double) totalProcessTime / batchSize;
+        long batchProcessTime = batchEndTime - batchStartTime;
+        double avgProcessTimePerRequest = (double) batchProcessTime / batchSize;
 
         logger.info("📊 节点 {} 批次#{} 完成: 总时间={}ms, 平均={}ms/req",
-                nodeIP, currentBatchNum, totalProcessTime, String.format("%.4f", avgProcessTimePerRequest));
+                nodeIP, currentBatchNum, batchProcessTime, String.format("%.4f", avgProcessTimePerRequest));
 
         // 生成响应并输出
         for (int i = 0; i < batch.size(); i++) {
@@ -233,11 +219,11 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
 
             // 🔧 批次触发时间计算等待时间
             // 等待时间 = 批次触发时间 - 请求到达时间
-            long waitTime = realBatchTriggerTime - requestArrivalTime;
-            waitTime = Math.max(0, Math.min(waitTime, maxWaitTimeMs));
+            long waitTime = batchTriggerTime - requestArrivalTime;
+            waitTime = Math.max(0, waitTime);
 
             response.waitTimeMs = waitTime;
-            response.batchProcessTimeMs = totalProcessTime;
+            response.batchProcessTimeMs = batchProcessTime;
             response.totalLatencyMs = waitTime + (long)avgProcessTimePerRequest;
 
             // 输出响应

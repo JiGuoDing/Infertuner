@@ -11,6 +11,9 @@ import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 基于数量的真实攒批分析作业
  *
@@ -35,6 +38,12 @@ public class CountBasedBatchAnalysisJob {
 
         // 🔧 超时配置：确保不会死锁
         long maxWaitTimeMs = Math.max(batchSize * interval * 2, 2000);
+
+        // 键组
+        ArrayList<String> keyList = new ArrayList<>();
+        for (int i = 0; i < parallelism; i++) {
+            keyList.add("key" + i);
+        }
 
         logger.info("🎯 基于数量的真实攒批配置:");
         logger.info("  目标批大小: {} (攒够立即处理)", batchSize);
@@ -71,7 +80,11 @@ public class CountBasedBatchAnalysisJob {
         // 注：通过keyBy获取key后，flink还会进行key分区，通过targetTaskIndex = hash(key) % numTasks得到下游subtask的索引
         // 将key进行放大，防止flink内部键分区hash后请求落到固定几个subtask
         // 不使用requestId，而使用userId
-        DataStream<InferenceResponse> responses = requests.rebalance().keyBy(req -> (Integer.parseInt(req.getRequestId().substring(4)) % parallelism) * (int) Math.pow(parallelism, parallelism))
+        // req -> (Integer.parseInt(req.getRequestId().substring(4)) % parallelism) * x
+        // int x = (int) Math.pow(parallelism, parallelism) % 2 == 0 ? (int) Math.pow(parallelism, parallelism) + 1 : (int) Math.pow(parallelism, parallelism);
+        // req -> keyList.get(Integer.parseInt(req.getRequestId().substring(4)) % parallelism)
+        // 使用InferenceRequest::getRequestId作为key，配合rebalance实现均匀分布，在后续处理算子中再自定义状态存储。
+        DataStream<InferenceResponse> responses = requests.rebalance().keyBy(InferenceRequest::getRequestId)
                 .process(new KeyedProcessFunctionBatchProcessor())
                 .name("Count Based Batch Processor");
 
