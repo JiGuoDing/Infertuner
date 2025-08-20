@@ -2,17 +2,16 @@ package com.infertuner.sinks;
 
 import com.infertuner.models.InferenceResponse;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.core.fs.FSDataOutputStream;
-import org.apache.flink.core.fs.FileSystem;
-import org.apache.flink.core.fs.Path;
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.net.URI;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -72,6 +71,7 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
     // 实例变量
     private final AtomicInteger localRequests = new AtomicInteger(0);
     private final int expectedTotalRequests;
+    private transient Path csvPath;
 
     public JointOptimizationSink(String experimentId, int parallelism, int batchSize) {
         this.experimentId = experimentId;
@@ -105,33 +105,25 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
 
-        // 1. 获取输出目录（支持在 flink-conf.yaml 中覆盖）
-        Configuration cfg = (Configuration) getRuntimeContext()
-                .getExecutionConfig().getGlobalJobParameters();
-        String baseDir = cfg.getString(
-                "pipeline.job-experiment.output-dir",
-                "/tmp/flink-exp-results"
-        );
+        String baseDir = "/mnt/tidal-alsh01/usr/suqian/results";
+        Path dir = Paths.get(baseDir);
+        Files.createDirectories(dir); // 确保目录存在
 
-        FileSystem fs = FileSystem.get(new URI(baseDir));
-        Path dir = new Path(baseDir);
+        csvPath = dir.resolve(String.format(
+                "p%db%d.csv",
+                parallelism,
+                batchSize
+        ));
 
-        // 2. 确保目录存在
-        fs.mkdirs(dir);
-
-        // 3. 生成输出文件路径
-        String safeExperimentId = experimentId.replaceAll("[^a-zA-Z0-9\\-]", "_");
-        Path csvPath = new Path(dir, String.format("p%db%d_%s.csv", parallelism, batchSize, safeExperimentId));
-
-        // 4. 如果文件不存在则写入表头
-        if (!fs.exists(csvPath)) {
-            try (
-                    FSDataOutputStream out = fs.create(csvPath, FileSystem.WriteMode.NO_OVERWRITE);
-                    PrintWriter pw = new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8))
-            ) {
-                pw.println(String.join(",", CSV_HEADER));
+        // 如果文件不存在，创建并写入表头
+        if (!Files.exists(csvPath)) {
+            try (BufferedWriter writer = Files.newBufferedWriter(csvPath, StandardCharsets.UTF_8)) {
+                writer.write(String.join(",", CSV_HEADER));
+                writer.newLine();
             }
         }
+
+        logger.info("CSV文件准备就绪");
     }
 
 
@@ -239,7 +231,7 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
         double successRate = total > 0 ? (success * 100.0) / total : 0.0;
 
         // 计算GPU负载均衡指标
-        double gpuLoadBalance = calculateLoadBalance();
+        double LoadBalance = calculateLoadBalance();
         int actualBatches = calculateActualBatches();
         double avgBatchSize = actualBatches > 0 ? (double) success / actualBatches : 0.0;
 
@@ -255,27 +247,27 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
         logger.info("🔢 请求统计:");
         logger.info("  总请求: {}", total);
         logger.info("  成功请求: {}", success);
-        logger.info("  成功率: {}%", String.format("%.1f", successRate));
+        logger.info("  成功率: {}%", String.format("%.4f", successRate));
         logger.info("------------------------------------------------");
         logger.info("⚡ 性能指标:");
-        logger.info("  吞吐量: {} req/s", String.format("%.2f", throughput));
+        logger.info("  吞吐量: {} req/s", String.format("%.4f", throughput));
         logger.info("  平均延迟: {}ms", Math.round(avgLatency));
         logger.info("  平均等待: {}ms", Math.round(avgWait));
         logger.info("  平均推理: {}ms", Math.round(avgInference));
-        logger.info("  处理时间: {}s", String.format("%.1f", actualProcessingTime));
+        logger.info("  处理时间: {}s", String.format("%.4f", actualProcessingTime));
         logger.info("------------------------------------------------");
         logger.info("🔧 并行度分析:");
         logger.info("  并行度(p): {}", parallelism);
         logger.info("  批大小(b): {}", batchSize);
         logger.info("  实际批次数: {}", actualBatches);
-        logger.info("  平均批大小: {}", String.format("%.1f", avgBatchSize));
-        logger.info("  负载均衡: {}%", String.format("%.1f", gpuLoadBalance));
-        logger.info("  资源利用率: {}%", String.format("%.1f", resourceUtilization));
+        logger.info("  平均批大小: {}", String.format("%.4f", avgBatchSize));
+        logger.info("  负载均衡: {}%", String.format("%.4f", LoadBalance));
+        logger.info("  资源利用率: {}%", String.format("%.4f", resourceUtilization));
         logger.info("------------------------------------------------");
         logger.info("📊 请求分布:");
         nodeRequestsCount.forEach((node, count) -> {
             double percentage = total > 0 ? (count.get() * 100.0) / total : 0.0;
-            logger.info("  节点{}: {} 请求 ({}%)", node, count.get(), String.format("%.1f", percentage));
+            logger.info("  节点{}: {} 请求 ({}%)", node, count.get(), String.format("%.4f", percentage));
         });
         logger.info("------------------------------------------------");
         logger.info("📦 批大小分布:");
@@ -291,10 +283,40 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
         // 关键性能总结
         logger.info("🎯 关键指标总结:");
         logger.info("  配置: p{}b{}", parallelism, batchSize);
-        logger.info("  吞吐量: {} req/s", String.format("%.2f", throughput));
+        logger.info("  吞吐量: {} req/s", String.format("%.4f", throughput));
         logger.info("  平均延迟: {}ms", Math.round(avgLatency));
-        logger.info("  GPU利用率: {}%", String.format("%.1f", resourceUtilization));
+        logger.info("  GPU利用率: {}%", String.format("%.4f", resourceUtilization));
         logger.info("================================================");
+
+        // 将指标全部保存到csv文件中
+        try (BufferedWriter writer = java.nio.file.Files.newBufferedWriter(
+                java.nio.file.Paths.get(csvPath.toString()),
+                StandardCharsets.UTF_8,
+                java.nio.file.StandardOpenOption.APPEND)) {
+
+            logger.info("正在记录统计指标");
+            writer.write(String.join(",",
+                    experimentId,
+                    String.valueOf(parallelism),
+                    String.valueOf(batchSize),
+                    String.valueOf(total),
+                    String.valueOf(success),
+                    String.format("%.4f", successRate),
+                    String.format("%.4f", throughput),
+                    String.valueOf(Math.round(avgLatency)),
+                    String.valueOf(Math.round(avgWait)),
+                    String.valueOf(Math.round(avgInference)),
+                    String.format("%.4f", actualProcessingTime),
+                    String.valueOf(actualBatches),
+                    String.format("%.4f", avgBatchSize),
+                    String.format("%.4f", LoadBalance),
+                    String.format("%.4f", resourceUtilization)
+            ));
+            writer.newLine();
+            logger.info("统计指标记录完成");
+        } catch (IOException e) {
+            logger.error("写入全局统计指标到CSV失败", e);
+        }
     }
 
     private double calculateLoadBalance() {

@@ -126,12 +126,14 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         // 记录批次中第一个请求时间
         if (currentSize == 1) {
             firstRequestTime = arrivalTime;
-            logger.info("节点 {} 开始新批次: {} (1/{}) - rebalance分发", nodeIP, request.requestId, targetBatchSize);
+            logger.info("节点 {} 开始第 {} 次攒批", nodeIP, batchCounter);
+        } else {
+            logger.info("节点 {} 接收到请求，当前请求数: {} / {}", nodeIP, currentSize, targetBatchSize);
         }
 
         // 修复：检查是否攒够了批次
         if (currentSize >= targetBatchSize) {
-            logger.info("🚀 节点 {} 攒够{}个请求，开始处理", nodeIP, targetBatchSize);
+            logger.info("🚀 节点 {} 攒够 {} 个请求，第 {} 个批次开始处理", nodeIP, targetBatchSize, batchCounter);
             processBatch(out);
         }
     }
