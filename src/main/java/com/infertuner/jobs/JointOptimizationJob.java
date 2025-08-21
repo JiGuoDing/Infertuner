@@ -79,7 +79,7 @@ public class JointOptimizationJob {
 
         // 使用专门的联合优化性能统计
         String experimentId = String.format("p%db%d_%dreq", parallelism, batchSize, totalRequests);
-        responses.addSink(new JointOptimizationSink(experimentId, parallelism, batchSize))
+        responses.addSink(new JointOptimizationSink(experimentId, parallelism, batchSize, interval))
                 .name("Joint Optimization Performance Sink").setParallelism(1);
 
         logger.info("🚀 p×b联合优化流水线构建完成");

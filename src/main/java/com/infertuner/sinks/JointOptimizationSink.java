@@ -31,6 +31,8 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
     private final String experimentId;
     private final int parallelism;
     private final int batchSize;
+    private final long interval;
+    private final float target_rate;
 
     // 全局统计变量（跨所有Sink实例共享）
     private static final AtomicInteger globalTotalRequests = new AtomicInteger(0);
@@ -44,6 +46,7 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
         "experiment_id",
         "parallelism",
         "batch_size",
+        "target_rate",
         "total_requests",
         "success_requests",
         "success_rate_pct",
@@ -73,10 +76,12 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
     private final int expectedTotalRequests;
     private transient Path csvPath;
 
-    public JointOptimizationSink(String experimentId, int parallelism, int batchSize) {
+    public JointOptimizationSink(String experimentId, int parallelism, int batchSize, long interval) {
         this.experimentId = experimentId;
         this.parallelism = parallelism;
         this.batchSize = batchSize;
+        this.interval = interval;
+        this.target_rate = 1000f / interval;
 
         // 从experimentId解析预期请求数
         this.expectedTotalRequests = parseExpectedRequestsFromId(experimentId);
@@ -105,7 +110,7 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
 
-        String baseDir = "/mnt/tidal-alsh01/usr/suqian/results";
+        String baseDir = "/mnt/tidal-alsh01/usr/suqian/results/submit_job_v3";
         Path dir = Paths.get(baseDir);
         Files.createDirectories(dir); // 确保目录存在
 
@@ -251,9 +256,9 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
         logger.info("------------------------------------------------");
         logger.info("⚡ 性能指标:");
         logger.info("  吞吐量: {} req/s", String.format("%.4f", throughput));
-        logger.info("  平均延迟: {}ms", Math.round(avgLatency));
-        logger.info("  平均等待: {}ms", Math.round(avgWait));
-        logger.info("  平均推理: {}ms", Math.round(avgInference));
+        logger.info("  平均延迟: {}ms", String.format("%.4f", avgLatency));
+        logger.info("  平均等待: {}ms", String.format("%.4f", avgWait));
+        logger.info("  平均推理: {}ms", String.format("%.4f", avgInference));
         logger.info("  处理时间: {}s", String.format("%.4f", actualProcessingTime));
         logger.info("------------------------------------------------");
         logger.info("🔧 并行度分析:");
@@ -284,7 +289,7 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
         logger.info("🎯 关键指标总结:");
         logger.info("  配置: p{}b{}", parallelism, batchSize);
         logger.info("  吞吐量: {} req/s", String.format("%.4f", throughput));
-        logger.info("  平均延迟: {}ms", Math.round(avgLatency));
+        logger.info("  平均延迟: {}ms", String.format("%.4f", avgLatency));
         logger.info("  GPU利用率: {}%", String.format("%.4f", resourceUtilization));
         logger.info("================================================");
 
@@ -299,13 +304,14 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
                     experimentId,
                     String.valueOf(parallelism),
                     String.valueOf(batchSize),
+                    String.format("%.4f", target_rate),
                     String.valueOf(total),
                     String.valueOf(success),
                     String.format("%.4f", successRate),
                     String.format("%.4f", throughput),
-                    String.valueOf(Math.round(avgLatency)),
-                    String.valueOf(Math.round(avgWait)),
-                    String.valueOf(Math.round(avgInference)),
+                    String.format("%.4f", avgLatency),
+                    String.format("%.4f", avgWait),
+                    String.format("%.4f", avgInference),
                     String.format("%.4f", actualProcessingTime),
                     String.valueOf(actualBatches),
                     String.format("%.4f", avgBatchSize),
