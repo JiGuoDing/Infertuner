@@ -130,7 +130,7 @@ public class ProcessFunctionBatchProcessor extends ProcessFunction<InferenceRequ
 
     @Override
     public void processElement(InferenceRequest request, Context ctx, Collector<InferenceResponse> out) throws Exception {
-        long arrivalTime = request.timestamp;
+        long arrivalTime = request.createTimestamp;
         long currentTime = System.currentTimeMillis();
 
         // 如果批次计数器状态未初始化

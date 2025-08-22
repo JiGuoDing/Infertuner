@@ -66,18 +66,15 @@ public class JointOptimizationJob {
         // logger.info("  总吞吐量: {} req/s", theoreticalTotalThroughput);
         // logger.info("  平均等待时间: {}ms", theoreticalAvgWaitTime);
 
-        // 构建并行批处理流水线
         DataStream<InferenceRequest> requests = env
-                .addSource(new BasicRequestSource(totalRequests, interval, true))
+                .addSource(new BasicRequestSource(totalRequests, interval))
                 .name("Joint Optimization Request Source");
 
-        // 尝试方案2：使用rebalance()自动负载均衡，避免keyBy的问题
         DataStream<InferenceResponse> responses = requests
                 .rebalance()
                 .process(new ParallelBatchProcessor())
                 .name("Parallel Batch Processor");
 
-        // 使用专门的联合优化性能统计
         String experimentId = String.format("p%db%d_%dreq", parallelism, batchSize, totalRequests);
         responses.addSink(new JointOptimizationSink(experimentId, parallelism, batchSize, interval))
                 .name("Joint Optimization Performance Sink").setParallelism(1);

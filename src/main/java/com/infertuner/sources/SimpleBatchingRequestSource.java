@@ -85,7 +85,7 @@ public class SimpleBatchingRequestSource extends RichSourceFunction<InferenceReq
         request.userMessage = generateMessage(index);
         request.maxTokens = 50;
         request.batchSize = batchSize;  // 设置批大小
-        request.timestamp = System.currentTimeMillis();
+        request.createTimestamp = System.currentTimeMillis();
         return request;
     }
     

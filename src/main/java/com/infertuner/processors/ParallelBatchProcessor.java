@@ -39,7 +39,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     // 内存缓冲区- 在open()中初始化
     private transient Queue<InferenceRequest> requestBuffer;
     private transient Queue<Long> arrivalTimes;
-    private transient long firstRequestTime = 0;
+    private transient long currentBatchFirstRequestTime = 0;
     private transient int batchCounter = 0;
 
     private static final String MODEL_NAME = "Qwen3-30B-A3B-Instruct";
@@ -115,17 +115,17 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
 
     @Override
     public void processElement(InferenceRequest request, Context ctx, Collector<InferenceResponse> out) throws Exception {
-        long arrivalTime = request.timestamp;
+        request.setAcceptedTimestamp(System.currentTimeMillis());
 
         // 将请求加入缓冲区
         requestBuffer.offer(request);
-        arrivalTimes.offer(arrivalTime);
+        arrivalTimes.offer(request.getAcceptedTimestamp());
 
         int currentSize = requestBuffer.size();
 
         // 记录批次中第一个请求时间
         if (currentSize == 1) {
-            firstRequestTime = arrivalTime;
+            currentBatchFirstRequestTime = request.getAcceptedTimestamp();
             logger.info("节点 {} 开始第 {} 次攒批", nodeIP, batchCounter);
         } else {
             logger.info("节点 {} 接收到请求，当前请求数: {} / {}", nodeIP, currentSize, targetBatchSize);
@@ -139,32 +139,32 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     }
 
     private void processBatch(Collector<InferenceResponse> out) throws Exception {
-        List<InferenceRequest> batch = new ArrayList<>();
-        List<Long> batchArrivalTimes = new ArrayList<>();
+        // 本次批处理的请求队列
+        List<InferenceRequest> requestBatch = new ArrayList<>();
 
-        // 提取批次请求
+        // 从缓冲区取出targetBatchSize个请求
         for (int i = 0; i < targetBatchSize; i++) {
             InferenceRequest req = requestBuffer.poll();
-            Long arrivalTime = arrivalTimes.poll();
-            if (req != null && arrivalTime != null) {
-                batch.add(req);
-                batchArrivalTimes.add(arrivalTime);
+            if (req != null) {
+                requestBatch.add(req);
             }
         }
 
-        if (batch.isEmpty()) {
+        if (requestBatch.isEmpty()) {
             return;
         }
 
-        int batchSize = batch.size();
+        int batchSize = requestBatch.size();
+        // 更新当前的批次数
         int currentBatchNum = ++batchCounter;
-        long batchTriggerTime = batchArrivalTimes.get(targetBatchSize-1);
+        // 当不考虑超时机制时，批次内最后一个请求的到达时间(被接受时间)即为该批次的触发时间
+        long batchTriggerTime = requestBatch.get(targetBatchSize - 1).getAcceptedTimestamp();
 
-        // 构建批次请求
+        // 构建用于传输的批次请求体
         BatchRequestData batchRequest = new BatchRequestData();
         batchRequest.requests = new ArrayList<>();
 
-        for (InferenceRequest req : batch) {
+        for (InferenceRequest req : requestBatch) {
             SingleRequestData singleReq = new SingleRequestData();
             singleReq.user_message = req.userMessage;
             singleReq.userId = req.getUserId();
@@ -202,8 +202,8 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
                 nodeIP, currentBatchNum, batchProcessTime, String.format("%.4f", avgProcessTimePerRequest));
 
         // 生成响应并输出
-        for (int i = 0; i < batch.size(); i++) {
-            InferenceRequest originalReq = batch.get(i);
+        for (int i = 0; i < requestBatch.size(); i++) {
+            InferenceRequest originalReq = requestBatch.get(i);
             SingleResponseData singleResp = batchResponse.responses.get(i);
             long requestArrivalTime = batchArrivalTimes.get(i);
 

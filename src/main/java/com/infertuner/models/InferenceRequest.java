@@ -8,18 +8,55 @@ public class InferenceRequest {
     public String userId;
     public String userMessage;
     public int maxTokens;
-    public int batchSize;  // 批处理大小
-    public long timestamp;
+    public int batchSize;
+    // 请求的创建时间戳
+    public long createTimestamp;
+    // 请求被接受的时间戳
+    public long acceptedTimestamp;
+    // 请求开始处理的时间戳
+    public long processingTimestamp;
+    // 请求执行完成的时间戳
+    public long completedTimestamp;
     
     public InferenceRequest() {}
-    
+
+    public long getAcceptedTimestamp() {
+        return acceptedTimestamp;
+    }
+
+    public void setAcceptedTimestamp(long acceptedTimestamp) {
+        this.acceptedTimestamp = acceptedTimestamp;
+    }
+
+    public long getProcessingTimestamp() {
+        return processingTimestamp;
+    }
+
+    public void setProcessingTimestamp(long processingTimestamp) {
+        this.processingTimestamp = processingTimestamp;
+    }
+
+    public long getCompletedTimestamp() {
+        return completedTimestamp;
+    }
+
+    public void setCompletedTimestamp(long completedTimestamp) {
+        this.completedTimestamp = completedTimestamp;
+    }
+
     public InferenceRequest(String requestId, String userId, String userMessage, int maxTokens) {
         this.requestId = requestId;
         this.userId = userId;
         this.userMessage = userMessage;
         this.maxTokens = maxTokens;
-        this.batchSize = 1;  // 默认批处理大小为1
-        this.timestamp = System.currentTimeMillis();
+        // batchSize默认为1
+        this.batchSize = 1;
+        // 请求创建的时间戳
+        this.createTimestamp = System.currentTimeMillis();
+        // 其余时间戳初始化为0
+        this.acceptedTimestamp = -1;
+        this.processingTimestamp = -1;
+        this.completedTimestamp = -1;
     }
     
     public InferenceRequest(String requestId, String userId, String userMessage, int maxTokens, int batchSize) {
@@ -28,7 +65,12 @@ public class InferenceRequest {
         this.userMessage = userMessage;
         this.maxTokens = maxTokens;
         this.batchSize = batchSize;
-        this.timestamp = System.currentTimeMillis();
+        // 请求创建的时间戳
+        this.createTimestamp = System.currentTimeMillis();
+        // 其余时间戳初始化为0
+        this.acceptedTimestamp = -1;
+        this.processingTimestamp = -1;
+        this.completedTimestamp = -1;
     }
 
     public String getRequestId() {
@@ -71,12 +113,12 @@ public class InferenceRequest {
         this.batchSize = batchSize;
     }
 
-    public long getTimestamp() {
-        return timestamp;
+    public long getCreateTimestamp() {
+        return createTimestamp;
     }
 
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
+    public void setCreateTimestamp(long createTimestamp) {
+        this.createTimestamp = createTimestamp;
     }
 
     @Override

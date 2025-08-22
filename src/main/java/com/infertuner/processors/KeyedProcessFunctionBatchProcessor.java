@@ -132,7 +132,7 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Str
         String currentKey = ctx.getCurrentKey();
         logger.info("处理请求 {}，当前Key: {}", request.requestId, currentKey);
 
-        long arrivalTime = request.timestamp;
+        long arrivalTime = request.createTimestamp;
         long currentTime = System.currentTimeMillis();
 
         // 如果批次计数器状态未初始化
