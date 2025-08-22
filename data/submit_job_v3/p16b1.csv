@@ -1,0 +1,4 @@
+experiment_id,parallelism,batch_size,target_rate,total_requests,success_requests,success_rate_pct,throughput_rps,avg_latency_ms,avg_wait_ms,avg_inference_ms,processing_time_sec,actual_batches,avg_batch_size,load_balance_pct,resource_utilization_pct
+p16b1_64req,16,1,10.0000,64,64,100.0000,1.4283,18806.5313,0.0000,18806.5313,44.8090,64,1.0000,100.0000,3.1244
+p16b1_64req,16,1,5.0000,64,64,100.0000,1.3685,19266.8594,0.0000,19266.8594,46.7680,64,1.0000,100.0000,2.9935
+p16b1_64req,16,1,4.0000,64,64,100.0000,1.4042,18638.7031,0.0000,18638.7031,45.5760,64,1.0000,100.0000,3.0718

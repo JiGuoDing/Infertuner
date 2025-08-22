@@ -1,0 +1,3 @@
+experiment_id,parallelism,batch_size,target_rate,total_requests,success_requests,success_rate_pct,throughput_rps,avg_latency_ms,avg_wait_ms,avg_inference_ms,processing_time_sec,actual_batches,avg_batch_size,load_balance_pct,resource_utilization_pct
+p4b8_128req,4,8,10.0000,128,128,100.0000,0.4999,12575.7188,1401.6563,11174.0625,256.0650,16,8.0000,100.0000,8.7478
+p4b8_128req,4,8,5.0000,128,128,100.0000,0.4309,14204.8516,2801.6641,11403.1875,297.0400,16,8.0000,100.0000,7.5411

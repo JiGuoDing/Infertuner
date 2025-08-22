@@ -1,0 +1,3 @@
+experiment_id,parallelism,batch_size,target_rate,total_requests,success_requests,success_rate_pct,throughput_rps,avg_latency_ms,avg_wait_ms,avg_inference_ms,processing_time_sec,actual_batches,avg_batch_size,load_balance_pct,resource_utilization_pct
+p15b4_240req,15,4,4.0000,240,240,100.0000,1.5565,17915.6833,5628.2167,12287.4667,154.1940,60,4.0000,100.0000,5.1883
+p15b4_240req,15,4,2.5000,240,240,100.0000,1.6425,20614.1917,9003.6750,11610.5167,146.1210,60,4.0000,100.0000,5.4749

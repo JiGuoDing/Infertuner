@@ -44,7 +44,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
 
     private static final String MODEL_NAME = "Qwen3-30B-A3B-Instruct";
     private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/".concat(MODEL_NAME);
-    private static final String BATCH_SERVICE_SCRIPT = "/mnt/tidal-alsh01/usr/suqian/scripts/batch_inference_service.py";
+    private static final String BATCH_SERVICE_SCRIPT = "/mnt/tidal-alsh01/usr/suqian/scripts/batch_inference_service_new.py";
 
     @Override
     public void open(Configuration parameters) throws Exception {

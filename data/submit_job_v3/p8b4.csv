@@ -1,0 +1,4 @@
+experiment_id,parallelism,batch_size,target_rate,total_requests,success_requests,success_rate_pct,throughput_rps,avg_latency_ms,avg_wait_ms,avg_inference_ms,processing_time_sec,actual_batches,avg_batch_size,load_balance_pct,resource_utilization_pct
+p8b4_128req,8,4,10.0000,128,128,100.0000,0.8020,13436.5156,1201.2344,12235.2813,159.5920,32,4.0000,100.0000,5.0128
+p8b4_128req,8,4,5.0000,128,128,100.0000,0.8090,15680.6641,2401.5703,13279.0938,158.2120,32,4.0000,100.0000,5.0565
+p8b4_128req,8,4,5.0000,128,128,100.0000,0.9300,14534.8281,2401.5781,12133.2500,137.6390,32,4.0000,100.0000,5.8123
