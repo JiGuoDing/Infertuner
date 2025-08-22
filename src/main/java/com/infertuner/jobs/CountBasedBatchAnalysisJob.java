@@ -73,7 +73,7 @@ public class CountBasedBatchAnalysisJob {
 
         // 构建基于数量的真实攒批流水线
         DataStream<InferenceRequest> requests = env
-                .addSource(new BasicRequestSource(maxRequests, interval, true)) // 设置为true，等待所有请求处理x完成
+                .addSource(new BasicRequestSource(maxRequests, interval)) // 设置为true，等待所有请求处理x完成
                 .name("Count Batch Request Source");
 
         // 用request的requestID作为键，并且使用rebalance()进行负载均衡

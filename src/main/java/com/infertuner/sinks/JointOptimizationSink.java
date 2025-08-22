@@ -110,7 +110,7 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
 
-        String baseDir = "/mnt/tidal-alsh01/usr/suqian/results/submit_job_v3";
+        String baseDir = "/mnt/tidal-alsh01/usr/suqian/results/submit_job_v4";
         Path dir = Paths.get(baseDir);
         Files.createDirectories(dir); // 确保目录存在
 
@@ -181,7 +181,7 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
         }
 
         // 统计节点分布
-        String nodeIP = response.modelName != null ? response.modelName : "Unknown-GPU";
+        String nodeIP = response.modelName != null ? response.modelName : "Unknown-Node";
         nodeRequestsCount.computeIfAbsent(nodeIP, k -> new AtomicInteger(0)).incrementAndGet();
 
         // 统计批大小分布
@@ -241,7 +241,7 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
         double avgBatchSize = actualBatches > 0 ? (double) success / actualBatches : 0.0;
 
         // 计算资源利用率
-        double theoreticalMaxThroughput = parallelism * (1000.0 / (300 + batchSize * 50)); // 理论最大吞吐量
+        double theoreticalMaxThroughput = parallelism * (1000.0 / (300 + batchSize * 50));
         double resourceUtilization = theoreticalMaxThroughput > 0 ? (throughput / theoreticalMaxThroughput) * 100 : 0.0;
 
         logger.info("================================================");

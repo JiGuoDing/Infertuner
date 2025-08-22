@@ -115,6 +115,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
 
     @Override
     public void processElement(InferenceRequest request, Context ctx, Collector<InferenceResponse> out) throws Exception {
+        // 更新请求的被接受时间
         request.setAcceptedTimestamp(System.currentTimeMillis());
 
         // 将请求加入缓冲区
@@ -131,7 +132,6 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             logger.info("节点 {} 接收到请求，当前请求数: {} / {}", nodeIP, currentSize, targetBatchSize);
         }
 
-        // 修复：检查是否攒够了批次
         if (currentSize >= targetBatchSize) {
             logger.info("🚀 节点 {} 攒够 {} 个请求，第 {} 个批次开始处理", nodeIP, targetBatchSize, batchCounter);
             processBatch(out);
@@ -146,6 +146,8 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         for (int i = 0; i < targetBatchSize; i++) {
             InferenceRequest req = requestBuffer.poll();
             if (req != null) {
+                // 更新请求的开始处理时间
+                req.setProcessingTimestamp(System.currentTimeMillis());
                 requestBatch.add(req);
             }
         }
@@ -165,68 +167,71 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         batchRequest.requests = new ArrayList<>();
 
         for (InferenceRequest req : requestBatch) {
+            // 构造单条请求体
             SingleRequestData singleReq = new SingleRequestData();
-            singleReq.user_message = req.userMessage;
+            singleReq.user_message = req.getUserMessage();
             singleReq.userId = req.getUserId();
-            singleReq.max_tokens = req.maxTokens;
-            singleReq.request_id = req.requestId;
+            singleReq.max_tokens = req.getMaxTokens();
+            singleReq.request_id = req.getRequestId();
             batchRequest.requests.add(singleReq);
         }
 
         batchRequest.batch_size = batchSize;
         batchRequest.batch_id = String.format("node-%s_batch_%d_%d", nodeIP, currentBatchNum, batchTriggerTime);
 
+        // 将请求发送到 Python 推理进程
         String requestJson = objectMapper.writeValueAsString(batchRequest);
         processInput.write(requestJson + "\n");
         processInput.flush();
 
-        long batchStartTime = System.currentTimeMillis();
+        long inferenceStartTime = System.currentTimeMillis();
 
-        // 从推理进程获取响应
+        // 从 Python 推理进程获取响应
         String responseJson = processOutput.readLine();
         if (responseJson == null) {
             throw new RuntimeException("节点 " + nodeIP + " 无响应");
         }
 
+        // 构造响应体，解析 Python 推理服务的响应内容
         BatchResponseData batchResponse = objectMapper.readValue(responseJson, BatchResponseData.class);
 
         if (!batchResponse.success) {
             throw new RuntimeException("节点 " + nodeIP + " 处理失败: " + batchResponse.error);
         }
 
-        long batchEndTime = System.currentTimeMillis();
-        long batchProcessTime = batchEndTime - batchStartTime;
-        double avgProcessTimePerRequest = (double) batchProcessTime / batchSize;
+        long inferenceEndTime = System.currentTimeMillis();
+        long inferenceTime = inferenceEndTime - inferenceStartTime;
 
-        logger.info("📊 节点 {} 批次#{} 完成: 总时间={}ms, 平均={}ms/req",
-                nodeIP, currentBatchNum, batchProcessTime, String.format("%.4f", avgProcessTimePerRequest));
+        logger.info("📊 节点 {} 批次#{} 完成: 总推理时间={}ms",
+                nodeIP, currentBatchNum, inferenceTime);
 
-        // 生成响应并输出
+        // 从响应中获取数据
         for (int i = 0; i < requestBatch.size(); i++) {
             InferenceRequest originalReq = requestBatch.get(i);
             SingleResponseData singleResp = batchResponse.responses.get(i);
-            long requestArrivalTime = batchArrivalTimes.get(i);
+            long requestArrivalTime = originalReq.getAcceptedTimestamp();
 
             InferenceResponse response = new InferenceResponse();
             response.requestId = originalReq.requestId;
             response.userId = originalReq.userId;
             response.userMessage = originalReq.userMessage;
             response.aiResponse = singleResp.response;
-            response.inferenceTimeMs = avgProcessTimePerRequest;
+            response.inferenceTimeMs = inferenceTime;
             response.success = singleResp.success;
             response.modelName = String.format("node-%s", nodeIP);
             response.fromCache = false;
             response.batchSize = batchSize;
-            response.timestamp = batchEndTime;
+            response.timestamp = inferenceEndTime;
 
             // 🔧 批次触发时间计算等待时间
             // 等待时间 = 批次触发时间 - 请求到达时间
             long waitTime = batchTriggerTime - requestArrivalTime;
-            waitTime = Math.max(0, waitTime);
 
             response.waitTimeMs = waitTime;
-            response.batchProcessTimeMs = batchProcessTime;
-            response.totalLatencyMs = waitTime + (long)avgProcessTimePerRequest;
+            response.batchProcessTimeMs = inferenceTime;
+            response.totalLatencyMs = waitTime + inferenceTime;
+
+            logger.info("请求 {} 处理完成，等待  {} 毫秒，推理 {} 毫秒，总耗时 {} 毫秒", response.requestId, response.waitTimeMs, response.inferenceTimeMs, response.totalLatencyMs);
 
             // 输出响应
             out.collect(response);

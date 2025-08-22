@@ -41,7 +41,7 @@ public class BatchAnalysisJob {
         
         // 构建简化的攒批流水线
         DataStream<InferenceRequest> requests = env
-            .addSource(new BasicRequestSource(maxRequests, interval, true))
+            .addSource(new BasicRequestSource(maxRequests, interval))
             .name("Normal Request Source");
         
         DataStream<InferenceResponse> responses = requests

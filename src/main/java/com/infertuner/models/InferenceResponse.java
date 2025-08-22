@@ -17,7 +17,7 @@ public class InferenceResponse {
     
     // 批处理相关字段 - 新增
     public long waitTimeMs = 0;               // 在缓冲区等待时间
-    public long batchProcessTimeMs = 0;       // 批处理执行时间
+    public long batchProcessTimeMs = 0;       // 批处理推理时间
     public long totalLatencyMs = 0;           // 总延迟 = 等待时间 + 处理时间
     
     public InferenceResponse() {}

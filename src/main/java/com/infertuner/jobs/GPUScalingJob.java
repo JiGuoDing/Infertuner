@@ -35,7 +35,7 @@ public class GPUScalingJob {
 
         // 生成模拟请求流
         DataStream<InferenceRequest> requests = env
-            .addSource(new BasicRequestSource(maxRequests, interval, true))
+            .addSource(new BasicRequestSource(maxRequests, interval))
             .name("Request Source");
 
         // 将推理请求映射为推理响应流
