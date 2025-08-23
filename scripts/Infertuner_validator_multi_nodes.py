@@ -193,6 +193,16 @@ class DS2Algorithm:
 
         return best_config
 
+class ContTuneAlgorithm:
+    """
+    ContTune算法实现
+    核心思想：Big-Small 算法 + CBO
+    """
+
+    # TODO 实现 ContTune 算法
+    def __init__(self, performance_data: pd.DataFrame):
+        self.df = performance_data
+
 class InferTunerAlgorithm:
     """
     InferTuner算法实现
