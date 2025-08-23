@@ -42,7 +42,8 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     private transient long currentBatchFirstRequestTime = 0;
     private transient int batchCounter = 0;
 
-    private static final String MODEL_NAME = "Qwen3-30B-A3B-Instruct";
+    // private static final String MODEL_NAME = "Qwen3-30B-A3B-Instruct";
+    private static final String MODEL_NAME = "llama-2-13B";
     private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/".concat(MODEL_NAME);
     private static final String BATCH_SERVICE_SCRIPT = "/mnt/tidal-alsh01/usr/suqian/scripts/batch_inference_service_new.py";
 
