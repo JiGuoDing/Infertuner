@@ -302,10 +302,14 @@ class AlgorithmComparator:
         min_latency = self.df['avg_latency_ms'].min()
 
         scenarios = [
-            ("低负载场景", 0.5, min_latency + 10000),
-            ("中负载场景", 1, min_latency + 18000),
-            ("高负载场景", 1.5, min_latency + 22000),
-            ("严格SLO场景", 1.25, min_latency + 13000),
+            ("低负载场景", 0.45, min_latency + 15000),
+            ("中低负载场景", 0.65, min_latency + 20000),
+            ("中中低负载场景", 0.7, min_latency + 20000),
+            ("中负载场景", 0.8, min_latency + 27000),
+            ("中高负载场景", 1, min_latency + 35000),
+            ("中高负载场景", 1.25, min_latency + 45000),
+            ("高负载场景", 1.5, min_latency + 60000),
+            ("严格SLO场景", 1.25, min_latency + 30000),
         ]
 
         print(f"\n🎯 生成测试场景 (基于最低延迟{min_latency:.0f}ms):")
