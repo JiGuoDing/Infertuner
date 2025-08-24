@@ -11,13 +11,20 @@ python3 infertuner_validator.py ../data/performance_profiling/performance_matrix
 import os
 import sys
 import math
+
 import numpy as np
 import pandas as pd
+from loguru import logger
+from collections import deque
 from dataclasses import dataclass
-from typing import Tuple, Optional, List, Dict
+from typing import Tuple, Optional, List
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernels import RBF, ConstantKernel as C
 from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
+
 
 @dataclass
 class Config:
@@ -27,6 +34,7 @@ class Config:
     cost: float  # 成本（GPU数量）
     predicted_latency: float
     predicted_throughput: float
+
 
 class PerformanceModel:
     """性能预测模型"""
@@ -81,6 +89,20 @@ class PerformanceModel:
         throughput = self.throughput_model.predict(X)[0]
         return latency, throughput
 
+def load_mapping(mapping_file="/home/jgd/workplace/Infertuner/data/submit_job_v3/parallelism_mapping.csv"):
+    df = pd.read_csv(mapping_file)
+    mapping = {row['parallelism']: (row['throughput_rps'], row['avg_latency_ms']) for _, row in df.iterrows()}
+    return mapping
+
+# 根据 parallelism 查询 throughput 和 latency
+def get_perf_by_parallelism(parallelism, mapping):
+    """在ContTune中使用的实际性能测量函数"""
+    if parallelism in mapping:
+        return mapping[parallelism]
+    else:
+        raise ValueError(f"Parallelism {parallelism} not found in mapping table")
+
+
 class DS2Algorithm:
     """
     DS2算法实现 (OSDI'18)
@@ -88,7 +110,7 @@ class DS2Algorithm:
     """
 
     def __init__(self, performance_data: pd.DataFrame):
-        self.df = performance_data
+        self.df_b1 = performance_data[performance_data["batch_size"] == 1].copy()
         self.performance_model = PerformanceModel(performance_data)
         self._build_true_rate_model()
 
@@ -97,21 +119,21 @@ class DS2Algorithm:
         print("🔄 构建DS2真实处理率模型...")
 
         # DS2只使用batch_size=1的数据
-        df_b1 = self.df[self.df['batch_size'] == 1].copy()
+        # df_b1 = self.df[self.df['batch_size'] == 1].copy()
 
-        if len(df_b1) == 0:
+        if len(self.df_b1) == 0:
             raise ValueError("DS2需要batch_size=1的性能数据")
 
         # 计算每个并行度的单实例真实处理率
         self.true_rate_per_instance = {}
-        for p in df_b1['parallelism'].unique():
-            p_data = df_b1[df_b1['parallelism'] == p]
+        for p in self.df_b1['parallelism'].unique():
+            p_data = self.df_b1[self.df_b1['parallelism'] == p]
             # DS2假设：在无backpressure时，实际吞吐量就是真实处理率
             avg_throughput = p_data['throughput_rps'].mean()
             # 单实例的实际吞吐量（真实处理率）
             single_instance_rate = avg_throughput / p
             self.true_rate_per_instance[p] = single_instance_rate
-            print(f"   p={p}: 单实例真实处理率={single_instance_rate:.3f} req/s")
+            print(f"p={p}: 单实例真实处理率={single_instance_rate:.3f} req/s")
 
     def estimate_true_processing_rate(self, parallelism: int) -> float:
         """
@@ -131,9 +153,9 @@ class DS2Algorithm:
             return 1.0
 
         # 方案1.线性插值
-#         known_rates = [self.true_rate_per_instance[p] for p in known_p]
-#         estimated_single_rate = np.interp(parallelism, known_p, known_rates)
-#         return estimated_single_rate * parallelism
+        #         known_rates = [self.true_rate_per_instance[p] for p in known_p]
+        #         estimated_single_rate = np.interp(parallelism, known_p, known_rates)
+        #         return estimated_single_rate * parallelism
 
         # 方案2.使用最接近的配置
         closest_p = min(known_p, key=lambda x: abs(x - parallelism))
@@ -166,7 +188,8 @@ class DS2Algorithm:
             throughput_ok = true_processing_rate >= target_rate * 0.95  # 5%容差
 
             if not throughput_ok:
-                print(f"   ❌ p={p} 不满足吞吐量约束: 真实处理率={true_processing_rate:.2f}req/s < {target_rate * 0.95:.2f}req/s")
+                print(
+                    f"   ❌ p={p} 不满足吞吐量约束: 真实处理率={true_processing_rate:.2f}req/s < {target_rate * 0.95:.2f}req/s")
                 continue
 
             # 使用性能模型估算延迟
@@ -193,15 +216,343 @@ class DS2Algorithm:
 
         return best_config
 
+
+class GaussianProcessModel:
+    """
+    高斯过程回归模型，用于 ContTune 算法中配置与性能的映射; 同时预测吞吐量和延迟
+    """
+
+    def __init__(self, performance_data, parallelism_search_space: np.ndarray):
+        """
+        初始化并自动训练 GP 模型
+        :param performance_data: 性能采集数据
+        """
+        self.df = performance_data
+        self.parallelism_search_space = parallelism_search_space
+        self.scaler_X = StandardScaler()
+        self.update(new_data=performance_data)
+
+    def update(self, new_data: pd.DataFrame, prewarm: bool = False):
+        """
+        增量更新数据并重新训练 GP 模型
+        :param new_data: 新增数据 DataFrame
+        :param prewarm: 是否添加预热样本（min/max parallelism）
+        """
+        # 数据清洗
+        new_data = new_data.dropna()
+
+        # 添加预热样本
+        if prewarm and len(new_data) > 0:
+            min_p = new_data["parallelism"].min()
+            max_p = new_data["parallelism"].max()
+            prewarm_points = []
+            for p in [min_p, max_p]:
+                row = new_data[new_data["parallelism"] == p]
+                if not row.empty:
+                    prewarm_points.append(row.iloc[0])
+            if prewarm_points:
+                prewarm_df = pd.DataFrame(prewarm_points)
+                new_data = pd.concat([new_data, prewarm_df], ignore_index=True)
+
+        # 初始化或增量更新训练数据
+        X_new = new_data[["parallelism"]].values
+        y_throughput_new = new_data[["throughput_rps"]].values
+        y_latency_new = new_data[["avg_latency_ms"]].values
+
+        if not hasattr(self, "X_train"):
+            self.X_train = X_new
+            self.y_train_throughput = y_throughput_new
+            self.y_train_latency = y_latency_new
+        else:
+            self.X_train = np.vstack((self.X_train, X_new))
+            self.y_train_throughput = np.vstack((self.y_train_throughput, y_throughput_new))
+            self.y_train_latency = np.vstack((self.y_train_latency, y_latency_new))
+
+        # 标准化 X
+        self.X_train_scaled = self.scaler_X.fit_transform(self.X_train)
+
+        # 定义核函数
+        kernel = C(1.0, (1e-2, 1e2)) * RBF(1.0, (1e-2, 1e2))
+
+        # GP 模型: 吞吐量
+        self.gp_throughput = GaussianProcessRegressor(
+            kernel=kernel,
+            n_restarts_optimizer=50,
+            alpha=1e-4,
+            normalize_y=True
+        )
+        self.gp_throughput.fit(self.X_train_scaled, self.y_train_throughput)
+
+        # GP 模型: 延迟
+        self.gp_latency = GaussianProcessRegressor(
+            kernel=kernel,
+            n_restarts_optimizer=50,
+            alpha=1e-4,
+            normalize_y=True
+        )
+        self.gp_latency.fit(self.X_train_scaled, self.y_train_latency)
+
+    def predict(self, x):
+        """
+        预测吞吐量和延迟
+        :param x:
+        :return:
+        """
+        X = np.array(x).reshape(-1, 1)
+        throughput_mean, throughput_std = self.gp_throughput.predict(X, return_std=True)
+        latency_mean, latency_std = self.gp_latency.predict(X, return_std=True)
+
+        return throughput_mean, throughput_std, latency_mean, latency_std
+
+    def suggest_next_parallelism(self, kappa=1.96):
+        """
+        使用 Upper Confidence Bound (UCB) 策略选择下一个并行度，综合考虑吞吐量和延迟
+        :param kappa: UCB 探索-利用权衡参数
+        :return: 推荐的并行度
+        """
+        # 预测搜索空间中的吞吐量和延迟
+        X = np.array(self.parallelism_search_space).reshape(-1, 1)
+        throughput_mean, throughput_std = self.gp_throughput.predict(X, return_std=True)
+        latency_mean, latency_std = self.gp_latency.predict(X, return_std=True)
+
+        # 标准化吞吐量和延迟以便比较（因为吞吐量和延迟的量纲不同）
+        throughput_mean_norm = (throughput_mean - throughput_mean.mean()) / throughput_mean.std()
+        throughput_std_norm = throughput_std / throughput_mean.std()
+        latency_mean_norm = (latency_mean - latency_mean.mean()) / latency_mean.std()
+        latency_std_norm = latency_std / latency_mean.std()
+
+        # 计算 UCB 分数，吞吐量最大化（正向），延迟最小化（负向）
+        throughput_ucb = throughput_mean_norm + kappa * throughput_std_norm
+        latency_ucb = -latency_mean_norm + kappa * latency_std_norm  # 负号表示延迟越小越好
+        combined_ucb = throughput_ucb + latency_ucb
+
+        # 选择 UCB 分数最高的并行度
+        best_index = np.argmax(combined_ucb)
+        return self.parallelism_search_space[best_index]
+
+
+
+
 class ContTuneAlgorithm:
     """
     ContTune算法实现
     核心思想：Big-Small 算法 + CBO
+    只涉及并行度调整，批大小固定为1
     """
 
     # TODO 实现 ContTune 算法
-    def __init__(self, performance_data: pd.DataFrame):
-        self.df = performance_data
+    def __init__(self,
+                 measure_fn,
+                 target_throughput,
+                 slo,
+                 performance_data,
+                 max_parallelism: int = 19,
+                 min_parallelism: int = 1,
+                 big_multiplier: int = 2,
+                 small_max_iters: int = 3,
+                 history_max_len: int = 10):
+        """
+        初始化 ContTune 算法
+        :param target_throughput: 目标吞吐量
+        :param measure_fn: 性能测量函数，输入并行度，输出真实吞吐量和延迟
+        :param performance_data: 性能采集数据
+        :param max_parallelism: 最大并行度
+        :param min_parallelism: 最小并行度
+        :param big_multiplier: Big Phase 的并行度放大系数
+        :param small_max_iters: Small Phase 的最大迭代次数
+        """
+        self.df_b1 = performance_data[performance_data["batch_size"] == 1].copy()
+        self.target_throughput = target_throughput
+        self.slo = slo
+        self.measure_fn = measure_fn
+        # 设置运行时参数
+        self.parallelism_search_space = np.arange(min_parallelism, max_parallelism + 1)
+        self.min_parallelism = min_parallelism
+        self.max_parallelism = max_parallelism
+        self.big_multiplier = big_multiplier
+        self.small_max_iters = small_max_iters
+
+        self.performance_model = PerformanceModel(performance_data=performance_data)
+
+        # 初始化历史数据，只维护 history_max_len 条记录
+        self.history = deque(maxlen=history_max_len)
+
+        # 创建 GP 模型
+        self.gp = GaussianProcessModel(
+            performance_data=self.df_b1,
+            parallelism_search_space=self.parallelism_search_space
+        )
+
+        # 加载真实性能映射表
+        self.mapping = load_mapping()
+
+    def big_phase(self, start_parallelism):
+        """
+        Big Phase: 放大并行度，直到吞吐量和延迟同时满足 SLA
+        :param start_parallelism: 起始并行度
+        :return: (最终并行度, 吞吐量, 延迟)
+        """
+        current_parallelism = start_parallelism
+        current_throughput, current_latency = self.measure_fn(current_parallelism)
+        self.history.append((current_parallelism, current_throughput, current_latency))
+
+        logger.info(f"[BIG] start with p={current_parallelism}, throughput={current_throughput:.2f} req/s, latency={current_latency:.2f} ms")
+
+        iter_count = 0
+        while current_throughput < self.target_throughput or current_latency > self.slo:
+            iter_count += 1
+            max_history_parallelism = max(p for p, _, _ in self.history) if self.history else current_parallelism
+
+            # 放大并行度
+            if current_parallelism >= max_history_parallelism:
+                current_parallelism = min(max(math.ceil(max_history_parallelism * self.big_multiplier), max_history_parallelism + 1), self.max_parallelism)
+            else:
+                current_parallelism = max_history_parallelism
+
+            current_throughput, current_latency = self.measure_fn(current_parallelism)
+            self.history.append((current_parallelism, current_throughput, current_latency))
+
+            # 记录 SLA 状态
+            if current_latency > self.slo:
+                reason = f"latency {current_latency:.2f} > threshold {self.slo}"
+                logger.warning(f"[BIG] SLA warning at p={current_parallelism} ({reason})")
+            if current_throughput < self.target_throughput:
+                reason = f"throughput {current_throughput:.2f} < target {self.target_throughput}"
+                logger.warning(f"[BIG] SLA warning at p={current_parallelism} ({reason})")
+
+            logger.info(f"[BIG] iter {iter_count}: p={current_parallelism}, throughput={current_throughput:.2f} req/s, latency={current_latency:.2f} ms")
+
+            if current_parallelism >= self.max_parallelism:
+                logger.warning("[BIG] reached maximum parallelism, stopping Big Phase")
+                break
+
+        # 最终检查 SLA
+        if current_throughput < self.target_throughput or current_latency > self.slo:
+            reason = []
+            if current_throughput < self.target_throughput:
+                reason.append(f"throughput {current_throughput:.2f} < target {self.target_throughput}")
+            if current_latency > self.slo:
+                reason.append(f"latency {current_latency:.2f} > threshold {self.slo}")
+            logger.warning(f"[BIG] final Big Phase SLA check: {', '.join(reason)}")
+
+        return current_parallelism, current_throughput, current_latency
+
+    def small_phase(self, start_parallelism):
+        """
+        Small Phase: 在 Big Phase 的结果基础上，尝试减少并行度以找到最小的 SLA 满足点。
+
+        SLA: throughput >= target_throughput AND latency <= latency_threshold
+
+        :param start_parallelism: Big Phase 结束时的并行度
+        :return: (最佳并行度, 吞吐量, 延迟)
+        """
+
+        current_parallelism = start_parallelism
+        tested_points = {current_parallelism}
+
+        # 记录 Big Phase 起点
+        throughput, latency = self.measure_fn(current_parallelism)
+        self.history.append((current_parallelism, throughput, latency))
+        logger.info(f"[SMALL] start from p={current_parallelism}: throughput={throughput:.2f}, latency={latency:.2f}")
+
+        # 如果 Big Phase 的起点本身不满足 SLA，直接返回
+        if not self._meet_sla(throughput, latency):
+            reason = self._sla_violation_reason(throughput, latency)
+            logger.warning(f"[SMALL] starting point does NOT meet SLA ({reason}), cannot reduce parallelism further.")
+            return current_parallelism, throughput, latency
+
+        # 如果满足 SLA，则尝试减少并行度
+        for it in range(self.small_max_iters):
+            logger.info(f"[SMALL] iteration {it + 1}")
+            next_parallelism = self.gp.suggest_next_parallelism()
+
+            # 必须保证候选并行度 < 当前并行度（往下调）
+            if next_parallelism >= current_parallelism or next_parallelism in tested_points:
+                logger.info("No smaller parallelism suggested, stopping Small Phase.")
+                break
+
+            # 实测性能
+            throughput, latency = self.measure_fn(next_parallelism)
+            logger.info(f"[SMALL] test p={next_parallelism}: throughput={throughput:.2f}, latency={latency:.2f}")
+
+            # 更新 GP 和历史
+            new_data = pd.DataFrame([[next_parallelism, throughput, latency]],
+                                    columns=["parallelism", "throughput_rps", "avg_latency_ms"])
+            self.gp.update(new_data)
+            self.history.append((next_parallelism, throughput, latency))
+            tested_points.add(next_parallelism)
+
+            # 如果 SLA 仍满足，则更新 current_parallelism（继续往下调）
+            if self._meet_sla(throughput, latency):
+                logger.info(f"[SMALL] SLA still satisfied at p={next_parallelism}. Continue reducing.")
+                current_parallelism = next_parallelism
+            else:
+                reason = self._sla_violation_reason(throughput, latency)
+                logger.info(f"[SMALL] SLA violated at p={next_parallelism} ({reason}). Stop.")
+                break
+
+        # 返回最小并行度（SLA 满足）
+        best_point = self._select_min_parallelism_sla()
+        logger.info(f"[SMALL] final minimal SLA point: p={best_point[0]}, "
+                    f"throughput={best_point[1]:.2f}, latency={best_point[2]:.2f}")
+        return best_point
+
+    def _meet_sla(self, throughput, latency):
+        return throughput >= self.target_throughput and latency <= self.slo
+
+    def _sla_violation_reason(self, throughput, latency):
+        reasons = []
+        if throughput < self.target_throughput:
+            reasons.append(f"throughput {throughput:.2f} < target {self.target_throughput}")
+        if latency > self.slo:
+            reasons.append(f"latency {latency:.2f} > threshold {self.slo}")
+        return " and ".join(reasons)
+
+    def _select_min_parallelism_sla(self):
+        # 筛选满足 SLA 的点
+        sla_points = [p for p in self.history if self._meet_sla(p[1], p[2])]
+        if sla_points:
+            # 按并行度升序选择最小的
+            return min(sla_points, key=lambda x: x[0])
+        else:
+            # 如果没有任何点满足 SLA，退而求其次选择吞吐量最高的
+            return max(self.history, key=lambda x: x[1])
+
+    def conttune_scaling_decision(self, start_parallelism: int):
+        """
+        执行 ContTune 调节逻辑：先 Big Phase 放大并行度，再 Small Phase 精调到最小满足 SLA 的并行度
+        :param start_parallelism: 初始并行度
+        :return: 并行度、吞吐量、延迟
+        """
+        logger.info("[ContTune] === Start Scaling Decision ===")
+
+        # 1. Big Phase
+        big_p, big_thr, big_lat = self.big_phase(start_parallelism=start_parallelism)
+        logger.info(f"[ContTune] Big Phase result: p={big_p}, throughput={big_thr:.2f}, latency={big_lat:.2f}")
+
+        # 检查 Big Phase SLA
+        if not self._meet_sla(big_thr, big_lat):
+            reason = self._sla_violation_reason(big_thr, big_lat)
+            logger.warning(f"[ContTune] Big Phase SLA 未达要求: {reason}")
+            # 即使未达 SLA，也可以尝试返回当前最大并行度作为配置
+
+            final_config = Config(p=big_p, b=1, cost=big_p, predicted_latency=big_lat, predicted_throughput=big_thr)
+            return final_config
+
+        # 2. Small Phase
+        best_p, best_thr, best_lat = self.small_phase(start_parallelism=big_p)
+        logger.info(f"[ContTune] Small Phase result: p={best_p}, throughput={best_thr:.2f}, latency={best_lat:.2f}")
+
+        # 检查最终 SLA
+        sla_met = self._meet_sla(best_thr, best_lat)
+        reason = None if sla_met else self._sla_violation_reason(best_thr, best_lat)
+
+        final_config = Config(p=best_p, b=1, cost=best_p, predicted_throughput=best_thr,predicted_latency=best_lat)
+        if not reason:
+            logger.warning(f"[ContTune] Big Phase SLA 未达要求: {reason}")
+
+        logger.info(f"[ContTune] Final scaling decision: {final_config}")
+        return final_config
 
 class InferTunerAlgorithm:
     """
@@ -234,7 +585,8 @@ class InferTunerAlgorithm:
                 # 约束检查
                 throughput_ok = pred_throughput >= target_rate * 0.95  # 5%容差
                 if not throughput_ok:
-                    print(f"   ❌ p={p} 不满足吞吐量约束: 预测处理率={pred_throughput:.2f}req/s < {target_rate * 0.95:.2f}req/s")
+                    print(
+                        f"   ❌ p={p} 不满足吞吐量约束: 预测处理率={pred_throughput:.2f}req/s < {target_rate * 0.95:.2f}req/s")
                     continue
 
                 latency_ok = pred_latency <= target_slo
@@ -265,7 +617,8 @@ class InferTunerAlgorithm:
             return None
 
         # 显示可行配置
-        print(f"   搜索空间: p∈{sorted(self.df_avg['parallelism'].unique())}, b∈{sorted(self.df_avg['batch_size'].unique())}")
+        print(
+            f"   搜索空间: p∈{sorted(self.df_avg['parallelism'].unique())}, b∈{sorted(self.df_avg['batch_size'].unique())}")
         for config in feasible_configs:
             print(f"   ✅ 可行: p={config.p}, b={config.b}, 成本={config.cost}GPU, "
                   f"吞吐量≈{config.predicted_throughput:.2f}req/s, 延迟≈{config.predicted_latency:.0f}ms")
@@ -289,11 +642,13 @@ class AlgorithmComparator:
             (self.df['throughput_rps'] > 0) &
             (self.df['avg_latency_ms'] > 0) &
             (self.df['success_rate_pct'] > 90)
-        ].copy()
+            ].copy()
         print(f"   清洗后: {len(self.df)} 条有效记录")
 
         # 初始化算法
         self.ds2 = DS2Algorithm(self.df)
+        self.mapping = load_mapping()
+        self.measure_fn = lambda p: get_perf_by_parallelism(p, self.mapping)
         self.infertuner = InferTunerAlgorithm(self.df)
 
         # 显示数据范围
@@ -330,47 +685,76 @@ class AlgorithmComparator:
 
     def compare_scenario(self, scenario_name: str, target_rate: float, target_slo: float):
         """对比单个场景"""
-        print(f"\n" + "="*70)
+        print(f"\n" + "=" * 70)
         print(f"📊 场景: {scenario_name}")
-        print("="*70)
+        print("=" * 70)
 
-        # 运行两种算法
+        # 运行三种算法
+        # DS2
         ds2_result = self.ds2.ds2_scaling_decision(target_rate, target_slo)
+
+        # ContTune
+        conttune = ContTuneAlgorithm(measure_fn=self.measure_fn,
+                                     target_throughput=target_rate,
+                                     slo=target_slo,
+                                     performance_data=self.df,
+                                     max_parallelism=20,
+                                     min_parallelism=1,
+                                     big_multiplier=1.25,
+                                     small_max_iters=3,
+                                     history_max_len=10)
+        conttune_result = conttune.conttune_scaling_decision(start_parallelism=1)
+
+        # InferTuner
         infertuner_result = self.infertuner.infertuner_scaling_decision(target_rate, target_slo)
 
         # 对比分析
-        return self._analyze_comparison(ds2_result, infertuner_result, scenario_name)
+        return self._analyze_comparison(ds2_result=ds2_result, conttune_result=conttune_result, infertuner_result=infertuner_result, scenario_name=scenario_name)
 
-    def _analyze_comparison(self, ds2_result: Optional[Config],
-                          infertuner_result: Optional[Config],
-                          scenario_name: str) -> Tuple[str, float]:
-        """分析对比结果"""
-        print(f"\n📋 算法对比:")
+    def _analyze_comparison(
+            self,
+            ds2_result: Optional[Config],
+            conttune_result: Optional[Config],
+            infertuner_result: Optional[Config],
+            scenario_name: str
+    ) -> Tuple[str, dict]:
+        """分析对比结果，返回最优算法名字，以及每个算法相对于DS2的节省GPU"""
 
-        if ds2_result and infertuner_result:
-            print(f"DS2:       p={ds2_result.p}, b={ds2_result.b} → {ds2_result.cost}GPU")
-            print(f"InferTuner: p={infertuner_result.p}, b={infertuner_result.b} → {infertuner_result.cost}GPU")
+        results = {
+            "DS2": ds2_result,
+            "ContTune": conttune_result,
+            "InferTuner": infertuner_result
+        }
 
-            if infertuner_result.cost < ds2_result.cost:
-                savings = ds2_result.cost - infertuner_result.cost
-                print(f"InferTuner: 节省{savings}GPU")
-                return "InferTuner", savings
-            elif infertuner_result.cost == ds2_result.cost:
-                print(f"成本相同")
-                return "Tie", 0
+        savings_dict = {}
+        for name, res in results.items():
+            if res:
+                print(f"{name}: p={res.p}, b={res.b} → {res.cost} GPU")
             else:
-                print(f"DS2更优")
-                return "DS2", 0
+                print(f"{name}: 无解")
 
-        elif infertuner_result and not ds2_result:
-            print(f"只有InferTuner找到解: p={infertuner_result.p}, b={infertuner_result.b}")
-            return "InferTuner", 0
-        elif ds2_result and not infertuner_result:
-            print(f"只有DS2找到解: p={ds2_result.p}, b={ds2_result.b}")
-            return "DS2", 0
-        else:
-            print(f"都无解")
-            return "None", 0
+        if not ds2_result:
+            print("DS2无解，无法计算相对节省")
+            for name in ["DS2", "ContTune", "InferTuner"]:
+                savings_dict[name] = None
+            return "None", savings_dict
+
+        ds2_cost = ds2_result.cost
+        savings_dict["DS2"] = 0
+
+        for name in ["ContTune", "InferTuner"]:
+            res = results[name]
+            if res:
+                savings_dict[name] = ds2_cost - res.cost
+            else:
+                savings_dict[name] = None
+
+        # 找到最优算法
+        valid_results = {name: res for name, res in results.items() if res is not None}
+        best_name = min(valid_results, key=lambda k: valid_results[k].cost)
+
+        print(f"最优算法: {best_name}")
+        return best_name, savings_dict[best_name]
 
     def run_complete_comparison(self):
         """运行完整对比"""
@@ -388,6 +772,7 @@ class AlgorithmComparator:
             results.append((name, winner, savings))
             total_savings += savings
 
+
 def main():
     """主函数"""
     if len(sys.argv) != 2:
@@ -401,8 +786,8 @@ def main():
         print(f"❌ 数据文件不存在: {data_file}")
         sys.exit(1)
 
-    print("🎯 DS2 vs InferTuner 论文方法完整实现与验证")
-    print("="*60)
+    print("🎯 DS2 vs ContTune vs InferTuner 论文方法完整实现与验证")
+    print("=" * 60)
 
     try:
         # 创建对比器并运行验证
@@ -413,6 +798,7 @@ def main():
         print(f"❌ 运行错误: {e}")
         import traceback
         traceback.print_exc()
+
 
 if __name__ == "__main__":
     main()
