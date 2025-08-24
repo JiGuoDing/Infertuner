@@ -89,7 +89,7 @@ class PerformanceModel:
         throughput = self.throughput_model.predict(X)[0]
         return latency, throughput
 
-def load_mapping(mapping_file="/home/jgd/workplace/Infertuner/data/submit_job_v3/parallelism_mapping.csv"):
+def load_mapping(mapping_file="../data/submit_job_v3/parallelism_mapping.csv"):
     df = pd.read_csv(mapping_file)
     mapping = {row['parallelism']: (row['throughput_rps'], row['avg_latency_ms']) for _, row in df.iterrows()}
     return mapping
