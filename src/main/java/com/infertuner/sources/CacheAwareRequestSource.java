@@ -23,16 +23,13 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
     
     // 问题池
     private final String[] questions = {
-        "什么是机器学习？",
-        "深度学习的基本原理是什么？", 
-        "神经网络如何工作？",
-        "什么是过拟合？",
-        "如何优化模型性能？",
-        "什么是注意力机制？",
-        "解释一下Transformer架构",
-        "什么是大语言模型？",
-        "如何评估模型质量？",
-        "什么是迁移学习？"
+        "Explain the interaction between warfarin and vitamin K-rich foods.",
+        "List the cardiovascular benefits observed within one year of smoking cessation.",
+        "Describe the proper technique for applying sunscreen to achieve labeled SPF.",
+        "Name two vaccines recommended for adults over 65 and their benefits.",
+        "Name two signs of lactose intolerance and how they differ from milk allergy.",
+        "What makes a memorable melody in reggae music? List 3-5 key points.",
+        "Suggest a day-by-day plan for Toronto with 3-4 activities per day and dining options. Focus on the most important aspects."
     };
     
     public CacheAwareRequestSource() {
