@@ -67,8 +67,8 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
 
     // 时间跟踪
     private static volatile long globalStartTime = 0;
-    private static volatile long globalFirstResponseTime = 0;
-    private static volatile long globalLastResponseTime = 0;
+    private static volatile long globalFirstRequestAcceptedTime = 0;
+    private static volatile long globalLastResponseSinkTime = 0;
     private static volatile boolean globalFinalStatsOutputted = false;
 
     // 实例变量
@@ -97,8 +97,8 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
             nodeRequestsCount.clear();
             batchSizeDistribution.clear();
             globalStartTime = System.currentTimeMillis();
-            globalFirstResponseTime = 0;
-            globalLastResponseTime = 0;
+            globalFirstRequestAcceptedTime = 0;
+            globalLastResponseSinkTime = 0;
             globalFinalStatsOutputted = false;
         }
 
@@ -110,7 +110,7 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
 
-        String baseDir = "/mnt/tidal-alsh01/usr/suqian/results/submit_job_v4";
+        String baseDir = "/mnt/tidal-alsh01/usr/suqian/results/submit_job_Falcon3-7B-Instruct_1000ms";
         Path dir = Paths.get(baseDir);
         Files.createDirectories(dir); // 确保目录存在
 
@@ -156,14 +156,14 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
         int localCount = localRequests.incrementAndGet();
 
         // 更新全局时间跟踪
-        if (globalFirstResponseTime == 0) {
+        if (globalFirstRequestAcceptedTime == 0) {
             synchronized (JointOptimizationSink.class) {
-                if (globalFirstResponseTime == 0) {
-                    globalFirstResponseTime = currentTime;
+                if (globalFirstRequestAcceptedTime == 0) {
+                    globalFirstRequestAcceptedTime = response.getRequestAcceptedTime();
                 }
             }
         }
-        globalLastResponseTime = currentTime;
+        globalLastResponseSinkTime = currentTime;
 
         // 更新全局统计
         if (response.success) {
@@ -223,8 +223,8 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
 
         // 计算核心性能指标
         double actualProcessingTime;
-        if (globalFirstResponseTime > 0 && globalLastResponseTime > globalFirstResponseTime) {
-            actualProcessingTime = (globalLastResponseTime - globalFirstResponseTime) / 1000.0;
+        if (globalFirstRequestAcceptedTime > 0 && globalLastResponseSinkTime > globalFirstRequestAcceptedTime) {
+            actualProcessingTime = (globalLastResponseSinkTime - globalFirstRequestAcceptedTime) / 1000.0;
         } else {
             actualProcessingTime = (System.currentTimeMillis() - globalStartTime) / 1000.0;
         }

@@ -1,0 +1,4 @@
+experiment_id,parallelism,batch_size,target_rate,total_requests,success_requests,success_rate_pct,throughput_rps,avg_latency_ms,avg_wait_ms,avg_inference_ms,processing_time_sec,actual_batches,avg_batch_size,load_balance_pct,resource_utilization_pct
+p11b4_44req,11,4,2.0000,44,44,100.0000,1.4290,17946.4091,8014.7727,9931.6364,30.7900,11,4.0000,100.0000,6.4956
+p11b4_44req,11,4,2.0000,44,44,100.0000,1.5067,16992.8182,8012.9091,8979.9091,29.2030,11,4.0000,100.0000,6.8486
+p11b4_44req,11,4,2.0000,44,44,100.0000,1.5122,17932.7045,7985.8864,9946.8182,29.0970,11,4.0000,100.0000,6.8736

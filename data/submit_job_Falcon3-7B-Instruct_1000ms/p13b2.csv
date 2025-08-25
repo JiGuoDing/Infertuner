@@ -1,0 +1,2 @@
+experiment_id,parallelism,batch_size,target_rate,total_requests,success_requests,success_rate_pct,throughput_rps,avg_latency_ms,avg_wait_ms,avg_inference_ms,processing_time_sec,actual_batches,avg_batch_size,load_balance_pct,resource_utilization_pct
+p13b2_26req,13,2,2.0000,26,26,100.0000,1.3116,9443.9231,2847.4615,6596.4615,19.8230,13,2.0000,100.0000,4.0357

@@ -1,0 +1,2 @@
+experiment_id,parallelism,batch_size,target_rate,total_requests,success_requests,success_rate_pct,throughput_rps,avg_latency_ms,avg_wait_ms,avg_inference_ms,processing_time_sec,actual_batches,avg_batch_size,load_balance_pct,resource_utilization_pct
+p8b8_64req,8,8,2.0000,64,64,100.0000,1.5696,24970.0156,13792.1406,11177.8750,40.7750,8,8.0000,100.0000,13.7339

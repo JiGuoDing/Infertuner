@@ -4,8 +4,8 @@ from sklearn.linear_model import LinearRegression
 
 
 # 1️⃣ 生成映射表并保存为文件
-def generate_mapping(csv_file="/home/jgd/workplace/Infertuner/data/submit_job_v3/merged_results.csv",
-                     output_file="/home/jgd/workplace/Infertuner/data/submit_job_v3/parallelism_mapping.csv"):
+def generate_mapping(csv_file="/home/jgd/workplace/Infertuner/data/submit_job_Falcon3-7B-Instruct_1000ms/merged_results.csv",
+                     output_file="/home/jgd/workplace/Infertuner/data/submit_job_Falcon3-7B-Instruct_1000ms/parallelism_mapping.csv"):
     df = pd.read_csv(csv_file)
     parallelism_values = sorted(df['parallelism'].unique())
     agg = df.groupby('parallelism')[['throughput_rps', 'avg_latency_ms']].mean().reset_index()

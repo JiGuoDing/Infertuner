@@ -11,7 +11,6 @@ import java.util.Random;
  * 精简版请求数据源
  */
 public class BasicRequestSource implements SourceFunction<InferenceRequest> {
-    
     private static final Logger logger = LoggerFactory.getLogger(BasicRequestSource.class);
     private volatile boolean isRunning = true;
     private final Random random = new Random();
@@ -56,7 +55,8 @@ public class BasicRequestSource implements SourceFunction<InferenceRequest> {
             String requestId = String.format("req_%04d", i);
             String userId = users[random.nextInt(users.length)];
             String question = questions[random.nextInt(questions.length)];
-            int maxTokens = 640 + random.nextInt(640); // 640-1280 tokens
+            // int maxTokens = 640 + random.nextInt(640); // 640-1280 tokens
+            int maxTokens = 320 + random.nextInt(320); // 320-640 tokens
             // int batchSize = 1 + random.nextInt(3);
             
             InferenceRequest request = new InferenceRequest(requestId, userId, question, maxTokens);

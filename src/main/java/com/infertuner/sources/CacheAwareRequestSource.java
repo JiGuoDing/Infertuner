@@ -20,8 +20,7 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
     private final int maxRequests;
     private final long baseInterval;
     private final boolean enableLoadVariation;
-    
-    // 问题池
+
     private final String[] questions = {
         "Explain the interaction between warfarin and vitamin K-rich foods.",
         "List the cardiovascular benefits observed within one year of smoking cessation.",
@@ -57,9 +56,10 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
             String userId = selectUserForLoad(config, i);
             
             // 生成请求
-            String requestId = String.format("req_%03d", i);
+            String requestId = String.format("req_%04d", i);
             String question = questions[random.nextInt(questions.length)];
-            int maxTokens = 50 + random.nextInt(50);
+            // 最大生成 token 数 320-640 之间随机
+            int maxTokens = 320 + random.nextInt(320);
             int batchSize = 1;
             
             InferenceRequest request = new InferenceRequest(requestId, userId, question, maxTokens, batchSize);
@@ -95,7 +95,8 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
         }
         
         double progress = (double) currentRequest / totalRequests;
-        
+
+        // 根据当前已发送的请求数确定当前的负载阶段
         if (progress < 0.15) {
             return LoadPhase.CONCENTRATED;      // 0-15%: 高度集中访问
         } else if (progress < 0.35) {
@@ -134,16 +135,17 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
      */
     private String selectUserForLoad(LoadConfig config, int requestIndex) {
         int userIndex;
-        
+
         if (config.sessionsPerUser == -1) {
-            // 混乱模式：完全随机
+            // 混乱模式：在 1 到 config.activeUsers 之间完全随机选择一个用户
             userIndex = random.nextInt(config.activeUsers) + 1;
         } else {
             // 其他模式：根据访问集中度选择
             if (config.activeUsers <= 5) {
-                // 集中访问：80%的请求访问前60%的用户
+                // 集中访问：80%的请求访问来自前60%的用户
                 if (random.nextDouble() < 0.8) {
-                    userIndex = random.nextInt(Math.max(1, (config.activeUsers * 3) / 5)) + 1;
+                    double top60PercentCount = Math.ceil(config.activeUsers * 3.0 / 5.0);
+                    userIndex = random.nextInt((int) top60PercentCount) + 1;
                 } else {
                     userIndex = random.nextInt(config.activeUsers) + 1;
                 }
@@ -152,8 +154,8 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
                 userIndex = random.nextInt(config.activeUsers) + 1;
             }
         }
-        
-        return String.format("user_%03d", userIndex);
+
+        return String.format("user_%04d", userIndex);
     }
     
     @Override

@@ -43,7 +43,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     private transient int batchCounter = 0;
 
     // private static final String MODEL_NAME = "Qwen3-30B-A3B-Instruct";
-    private static final String MODEL_NAME = "llama-2-13B";
+    private static final String MODEL_NAME = "Falcon3-7B-Instruct";
     private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/".concat(MODEL_NAME);
     private static final String BATCH_SERVICE_SCRIPT = "/mnt/tidal-alsh01/usr/suqian/scripts/batch_inference_service_new.py";
 
@@ -223,6 +223,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             response.fromCache = false;
             response.batchSize = batchSize;
             response.timestamp = inferenceEndTime;
+            response.setRequestAcceptedTime(originalReq.getAcceptedTimestamp());
 
             // 🔧 批次触发时间计算等待时间
             // 等待时间 = 批次触发时间 - 请求到达时间
@@ -232,7 +233,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             response.batchProcessTimeMs = inferenceTime;
             response.totalLatencyMs = waitTime + inferenceTime;
 
-            logger.info("请求 {} 处理完成，等待  {} 毫秒，推理 {} 毫秒，总耗时 {} 毫秒", response.requestId, response.waitTimeMs, response.inferenceTimeMs, response.totalLatencyMs);
+            logger.info("请求 {} 处理完成，等待 {} 毫秒，推理 {} 毫秒，总耗时 {} 毫秒", response.requestId, response.waitTimeMs, response.inferenceTimeMs, response.totalLatencyMs);
 
             // 输出响应
             out.collect(response);

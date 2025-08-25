@@ -1,0 +1,3 @@
+experiment_id,parallelism,batch_size,target_rate,total_requests,success_requests,success_rate_pct,throughput_rps,avg_latency_ms,avg_wait_ms,avg_inference_ms,processing_time_sec,actual_batches,avg_batch_size,load_balance_pct,resource_utilization_pct
+p17b4_272req,17,4,4.0000,272,272,100.0000,0.3063,188877.5919,1522.2978,187355.2941,888.0630,68,4.0000,100.0000,0.9008
+p17b4_272req,17,4,0.5000,272,272,100.0000,0.3412,194112.9743,14651.7243,179461.2500,797.2450,68,4.0000,100.0000,1.0035

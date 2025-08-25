@@ -39,15 +39,17 @@ public class CacheExperimentJob {
         // 将参数注册为全局参数（方便算子获取）
         env.getConfig().setGlobalJobParameters(params);
 
-        // 构建流水线
+        // 请求生成流
         DataStream<InferenceRequest> requests = env
                 .addSource(new CacheAwareRequestSource(maxRequests, baseInterval, enableLoadVariation))
                 .name("Cache-Aware Request Source");
 
+        // 带缓存的推理处理器
         DataStream<InferenceResponse> responses = requests
                 .map(new CacheEnabledInferenceProcessor())
                 .name("Cache-Enabled Inference Processor");
 
+        // 数据汇总
         responses.addSink(new SimpleResultSink())
                 .name("Result Sink");
 

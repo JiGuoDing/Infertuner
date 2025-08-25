@@ -56,13 +56,13 @@ class PerformanceModel:
 
         # 训练延迟预测模型
         self.latency_model = GradientBoostingRegressor(
-            n_estimators=200, learning_rate=0.1, max_depth=6, random_state=42
+            n_estimators=200, learning_rate=0.01, max_depth=6, random_state=42
         )
         self.latency_model.fit(X, y_latency)
 
         # 训练吞吐量预测模型
         self.throughput_model = GradientBoostingRegressor(
-            n_estimators=200, learning_rate=0.1, max_depth=6, random_state=42
+            n_estimators=200, learning_rate=0.01, max_depth=6, random_state=42
         )
         self.throughput_model.fit(X, y_throughput)
 
@@ -89,10 +89,17 @@ class PerformanceModel:
         throughput = self.throughput_model.predict(X)[0]
         return latency, throughput
 
-def load_mapping(mapping_file="../data/submit_job_v3/parallelism_mapping.csv"):
+
+def load_mapping(mapping_file="../data/submit_job_Falcon3-7B-Instruct_1000ms/parallelism_mapping.csv"):
+    """
+    获取映射表： 并行度 -> (吞吐量, 延迟)
+    :param mapping_file:
+    :return:
+    """
     df = pd.read_csv(mapping_file)
     mapping = {row['parallelism']: (row['throughput_rps'], row['avg_latency_ms']) for _, row in df.iterrows()}
     return mapping
+
 
 # 根据 parallelism 查询 throughput 和 latency
 def get_perf_by_parallelism(parallelism, mapping):
@@ -109,9 +116,10 @@ class DS2Algorithm:
     核心思想：基于真实处理率优化并行度，批大小固定为1
     """
 
-    def __init__(self, performance_data: pd.DataFrame):
+    def __init__(self, performance_data: pd.DataFrame, max_parallelism: int):
         self.df_b1 = performance_data[performance_data["batch_size"] == 1].copy()
         self.performance_model = PerformanceModel(performance_data)
+        self.max_parallelism = max_parallelism
         self._build_true_rate_model()
 
     def _build_true_rate_model(self):
@@ -152,6 +160,7 @@ class DS2Algorithm:
         if not known_p:
             return 1.0
 
+        # 当前并行度不在已知范围内
         # 方案1.线性插值
         #         known_rates = [self.true_rate_per_instance[p] for p in known_p]
         #         estimated_single_rate = np.interp(parallelism, known_p, known_rates)
@@ -178,7 +187,7 @@ class DS2Algorithm:
 
         # DS2搜索空间：只能调整并行度
         available_p = sorted(self.true_rate_per_instance.keys())
-        max_p = max(available_p) if available_p else 4
+        max_p = max(available_p) if available_p else self.max_parallelism
 
         for p in range(1, max_p + 1):
             # DS2核心：基于真实处理率判断
@@ -272,13 +281,13 @@ class GaussianProcessModel:
         self.X_train_scaled = self.scaler_X.fit_transform(self.X_train)
 
         # 定义核函数
-        kernel = C(1.0, (1e-2, 1e2)) * RBF(1.0, (1e-2, 1e2))
+        kernel = C(1.0, (1e-2, 1e2)) * RBF(1.0, (1e-4, 1e4))
 
         # GP 模型: 吞吐量
         self.gp_throughput = GaussianProcessRegressor(
             kernel=kernel,
-            n_restarts_optimizer=50,
-            alpha=1e-4,
+            n_restarts_optimizer=25,
+            alpha=1e-2,
             normalize_y=True
         )
         self.gp_throughput.fit(self.X_train_scaled, self.y_train_throughput)
@@ -286,8 +295,8 @@ class GaussianProcessModel:
         # GP 模型: 延迟
         self.gp_latency = GaussianProcessRegressor(
             kernel=kernel,
-            n_restarts_optimizer=50,
-            alpha=1e-4,
+            n_restarts_optimizer=25,
+            alpha=1e-2,
             normalize_y=True
         )
         self.gp_latency.fit(self.X_train_scaled, self.y_train_latency)
@@ -329,8 +338,6 @@ class GaussianProcessModel:
         # 选择 UCB 分数最高的并行度
         best_index = np.argmax(combined_ucb)
         return self.parallelism_search_space[best_index]
-
-
 
 
 class ContTuneAlgorithm:
@@ -396,7 +403,8 @@ class ContTuneAlgorithm:
         current_throughput, current_latency = self.measure_fn(current_parallelism)
         self.history.append((current_parallelism, current_throughput, current_latency))
 
-        logger.info(f"[BIG] start with p={current_parallelism}, throughput={current_throughput:.2f} req/s, latency={current_latency:.2f} ms")
+        logger.info(
+            f"[BIG] start with p={current_parallelism}, throughput={current_throughput:.2f} req/s, latency={current_latency:.2f} ms")
 
         iter_count = 0
         while current_throughput < self.target_throughput or current_latency > self.slo:
@@ -405,7 +413,9 @@ class ContTuneAlgorithm:
 
             # 放大并行度
             if current_parallelism >= max_history_parallelism:
-                current_parallelism = min(max(math.ceil(max_history_parallelism * self.big_multiplier), max_history_parallelism + 1), self.max_parallelism)
+                current_parallelism = min(
+                    max(math.ceil(max_history_parallelism * self.big_multiplier), max_history_parallelism + 1),
+                    self.max_parallelism)
             else:
                 current_parallelism = max_history_parallelism
 
@@ -420,7 +430,8 @@ class ContTuneAlgorithm:
                 reason = f"throughput {current_throughput:.2f} < target {self.target_throughput}"
                 logger.warning(f"[BIG] SLA warning at p={current_parallelism} ({reason})")
 
-            logger.info(f"[BIG] iter {iter_count}: p={current_parallelism}, throughput={current_throughput:.2f} req/s, latency={current_latency:.2f} ms")
+            logger.info(
+                f"[BIG] iter {iter_count}: p={current_parallelism}, throughput={current_throughput:.2f} req/s, latency={current_latency:.2f} ms")
 
             if current_parallelism >= self.max_parallelism:
                 logger.warning("[BIG] reached maximum parallelism, stopping Big Phase")
@@ -547,12 +558,13 @@ class ContTuneAlgorithm:
         sla_met = self._meet_sla(best_thr, best_lat)
         reason = None if sla_met else self._sla_violation_reason(best_thr, best_lat)
 
-        final_config = Config(p=best_p, b=1, cost=best_p, predicted_throughput=best_thr,predicted_latency=best_lat)
-        if not reason:
+        final_config = Config(p=best_p, b=1, cost=best_p, predicted_throughput=best_thr, predicted_latency=best_lat)
+        if reason:
             logger.warning(f"[ContTune] Big Phase SLA 未达要求: {reason}")
 
         logger.info(f"[ContTune] Final scaling decision: {final_config}")
         return final_config
+
 
 class InferTunerAlgorithm:
     """
@@ -586,12 +598,12 @@ class InferTunerAlgorithm:
                 throughput_ok = pred_throughput >= target_rate * 0.95  # 5%容差
                 if not throughput_ok:
                     print(
-                        f"   ❌ p={p} 不满足吞吐量约束: 预测处理率={pred_throughput:.2f}req/s < {target_rate * 0.95:.2f}req/s")
+                        f"   ❌ p={p}, b={b} 不满足吞吐量约束: 预测处理率={pred_throughput:.2f}req/s < {target_rate * 0.95:.2f}req/s")
                     continue
 
                 latency_ok = pred_latency <= target_slo
                 if not latency_ok:
-                    print(f"   ❌ p={p} 不满足延迟约束: 预测延迟={pred_latency:.0f}ms > {target_slo:.0f}ms")
+                    print(f"   ❌ p={p}, b={b} 不满足延迟约束: 预测延迟={pred_latency:.0f}ms > {target_slo:.0f}ms")
                     continue
 
                 cost = p  # GPU数量作为成本
@@ -629,10 +641,11 @@ class InferTunerAlgorithm:
 
         return best_config
 
+
 class AlgorithmComparator:
     """算法对比器"""
 
-    def __init__(self, performance_data_file: str):
+    def __init__(self, performance_data_file: str, max_parallelism: int = 19):
         # 加载数据
         self.df = pd.read_csv(performance_data_file)
         print(f"📊 加载性能数据: {len(self.df)} 条记录")
@@ -646,7 +659,7 @@ class AlgorithmComparator:
         print(f"   清洗后: {len(self.df)} 条有效记录")
 
         # 初始化算法
-        self.ds2 = DS2Algorithm(self.df)
+        self.ds2 = DS2Algorithm(self.df, max_parallelism=max_parallelism)
         self.mapping = load_mapping()
         self.measure_fn = lambda p: get_perf_by_parallelism(p, self.mapping)
         self.infertuner = InferTunerAlgorithm(self.df)
@@ -667,14 +680,16 @@ class AlgorithmComparator:
         min_latency = self.df['avg_latency_ms'].min()
 
         scenarios = [
-            ("低负载场景", 0.45, min_latency + 15000),
-            ("中低负载场景", 0.65, min_latency + 20000),
-            ("中中低负载场景", 0.7, min_latency + 20000),
-            ("中负载场景", 0.8, min_latency + 27000),
-            ("中高负载场景", 1, min_latency + 35000),
-            ("中高负载场景", 1.25, min_latency + 45000),
-            ("高负载场景", 1.5, min_latency + 60000),
-            ("严格SLO场景", 1.25, min_latency + 30000),
+            ("极低负载场景", 0.17, 12000),
+            ("低负载场景", 0.5, 14000),
+            ("中低负载场景", 0.8, 16000),
+            ("中负载场景(小批量)", 1.0, 18000),
+            ("中负载场景(大批量)", 1.2, 20000),
+            ("中高负载场景", 1.4, 22000),
+            ("较高负载场景", 1.5, 25000),
+            ("高负载", 1.6, 30000),
+            ("接近饱和负载", 1.69, 38000),
+            ("峰值/饱和负载", 1.78, 48000),
         ]
 
         print(f"\n🎯 生成测试场景 (基于最低延迟{min_latency:.0f}ms):")
@@ -683,42 +698,20 @@ class AlgorithmComparator:
 
         return scenarios
 
-    def compare_scenario(self, scenario_name: str, target_rate: float, target_slo: float):
-        """对比单个场景"""
-        print(f"\n" + "=" * 70)
-        print(f"📊 场景: {scenario_name}")
-        print("=" * 70)
-
-        # 运行三种算法
-        # DS2
-        ds2_result = self.ds2.ds2_scaling_decision(target_rate, target_slo)
-
-        # ContTune
-        conttune = ContTuneAlgorithm(measure_fn=self.measure_fn,
-                                     target_throughput=target_rate,
-                                     slo=target_slo,
-                                     performance_data=self.df,
-                                     max_parallelism=20,
-                                     min_parallelism=1,
-                                     big_multiplier=1.25,
-                                     small_max_iters=3,
-                                     history_max_len=10)
-        conttune_result = conttune.conttune_scaling_decision(start_parallelism=1)
-
-        # InferTuner
-        infertuner_result = self.infertuner.infertuner_scaling_decision(target_rate, target_slo)
-
-        # 对比分析
-        return self._analyze_comparison(ds2_result=ds2_result, conttune_result=conttune_result, infertuner_result=infertuner_result, scenario_name=scenario_name)
-
     def _analyze_comparison(
             self,
-            ds2_result: Optional[Config],
-            conttune_result: Optional[Config],
-            infertuner_result: Optional[Config],
+            ds2_result: Optional["Config"],
+            conttune_result: Optional["Config"],
+            infertuner_result: Optional["Config"],
             scenario_name: str
-    ) -> Tuple[str, dict]:
-        """分析对比结果，返回最优算法名字，以及每个算法相对于DS2的节省GPU"""
+    ) -> Tuple[str, Optional[float], Optional[float]]:
+        """
+        分析对比结果:
+        返回：
+        - 最优算法名字
+        - InferTuner 相对于 DS2 的 GPU 节省 (若 DS2 无解则为 None)
+        - InferTuner 相对于 ContTune 的 GPU 节省 (若 ContTune 无解或 InferTuner 无解则为 None)
+        """
 
         results = {
             "DS2": ds2_result,
@@ -726,52 +719,136 @@ class AlgorithmComparator:
             "InferTuner": infertuner_result
         }
 
-        savings_dict = {}
         for name, res in results.items():
             if res:
-                print(f"{name}: p={res.p}, b={res.b} → {res.cost} GPU")
+                print(f"{name}: p={res.p}, b={res.b} → cost={res.cost}, latency={res.predicted_latency}, throughput={res.predicted_throughput}")
             else:
                 print(f"{name}: 无解")
 
-        if not ds2_result:
-            print("DS2无解，无法计算相对节省")
-            for name in ["DS2", "ContTune", "InferTuner"]:
-                savings_dict[name] = None
-            return "None", savings_dict
-
-        ds2_cost = ds2_result.cost
-        savings_dict["DS2"] = 0
-
-        for name in ["ContTune", "InferTuner"]:
-            res = results[name]
-            if res:
-                savings_dict[name] = ds2_cost - res.cost
-            else:
-                savings_dict[name] = None
-
-        # 找到最优算法
+        # 选择 cost 最小的算法
         valid_results = {name: res for name, res in results.items() if res is not None}
+        if not valid_results:
+            print("❌ 所有算法无解")
+            return "None", None, None
+
         best_name = min(valid_results, key=lambda k: valid_results[k].cost)
+        print(f"✅ 最优算法（按cost）: {best_name}")
 
-        print(f"最优算法: {best_name}")
-        return best_name, savings_dict[best_name]
+        # 计算 GPU 节省（InferTuner vs DS2）
+        savings_vs_ds2 = None
+        if ds2_result and infertuner_result:
+            savings_vs_ds2 = ds2_result.cost - infertuner_result.cost
 
-    def run_complete_comparison(self):
-        """运行完整对比"""
-        print(f"\n🚀 开始 DS2 vs InferTuner 完整对比")
+        # 计算 GPU 节省（InferTuner vs ContTune）
+        savings_vs_conttune = None
+        if conttune_result and infertuner_result:
+            savings_vs_conttune = conttune_result.cost - infertuner_result.cost
+
+        return best_name, savings_vs_ds2, savings_vs_conttune
+
+    def compare_scenario(self, scenario_name: str, target_rate: float, target_slo: float):
+        """对比单个场景，并返回详细记录"""
+        print(f"\n" + "=" * 70)
+        print(f"📊 场景: {scenario_name}")
+        print("=" * 70)
+
+        # 运行三种算法
+        ds2_result = self.ds2.ds2_scaling_decision(target_rate, target_slo)
+
+        conttune = ContTuneAlgorithm(
+            measure_fn=self.measure_fn,
+            target_throughput=target_rate,
+            slo=target_slo,
+            performance_data=self.df,
+            max_parallelism=19,
+            min_parallelism=1,
+            big_multiplier=1.25,
+            small_max_iters=3,
+            history_max_len=10
+        )
+        conttune_result = conttune.conttune_scaling_decision(start_parallelism=1)
+
+        infertuner_result = self.infertuner.infertuner_scaling_decision(target_rate, target_slo)
+
+        # 计算最优算法 + 节省情况
+        best_name, savings_vs_ds2, savings_vs_conttune = self._analyze_comparison(
+            ds2_result=ds2_result,
+            conttune_result=conttune_result,
+            infertuner_result=infertuner_result,
+            scenario_name=scenario_name
+        )
+
+        # 提取算法配置
+        def extract_info(result: Optional["Config"]):
+            if result:
+                return result.p, result.b, result.cost, result.predicted_throughput, result.predicted_latency
+            return None, None, None, None, None
+
+        ds2_p, ds2_b, ds2_cost, ds2_tp, ds2_lat = extract_info(ds2_result)
+        cont_p, cont_b, cont_cost, cont_tp, cont_lat = extract_info(conttune_result)
+        inf_p, inf_b, inf_cost, inf_tp, inf_lat = extract_info(infertuner_result)
+
+        record = {
+            "Scenario": scenario_name,
+            "Target_Throughput(req/s)": target_rate,
+            "Target_SLO(ms)": target_slo,
+
+            # DS2
+            "DS2_p": ds2_p,
+            "DS2_b": ds2_b,
+            "DS2_cost": ds2_cost,
+            "DS2_throughput": ds2_tp,
+            "DS2_latency(ms)": ds2_lat,
+
+            # ContTune
+            "ContTune_p": cont_p,
+            "ContTune_b": cont_b,
+            "ContTune_cost": cont_cost,
+            "ContTune_throughput": cont_tp,
+            "ContTune_latency(ms)": cont_lat,
+
+            # InferTuner
+            "InferTuner_p": inf_p,
+            "InferTuner_b": inf_b,
+            "InferTuner_cost": inf_cost,
+            "InferTuner_throughput": inf_tp,
+            "InferTuner_latency(ms)": inf_lat,
+
+            # 对比结果
+            "Best_Algorithm": best_name,
+            "InferTuner_vs_DS2_Savings": savings_vs_ds2,
+            "InferTuner_vs_ContTune_Savings": savings_vs_conttune
+        }
+
+        return record
+
+    def run_complete_comparison(self, output_csv="comparison_results.csv"):
+        """运行完整对比，并将结果保存为CSV"""
+        print(f"\n🚀 开始 DS2 vs ContTune vs InferTuner 完整对比")
 
         # 生成测试场景
         scenarios = self.generate_realistic_scenarios()
 
         # 执行对比
-        results = []
-        total_savings = 0
+        all_records = []
+        total_savings_ds2 = 0
+        total_savings_conttune = 0
 
         for name, rate, slo in scenarios:
-            winner, savings = self.compare_scenario(name, rate, slo)
-            results.append((name, winner, savings))
-            total_savings += savings
+            record = self.compare_scenario(name, rate, slo)
+            all_records.append(record)
 
+            if record["InferTuner_vs_DS2_Savings"]:
+                total_savings_ds2 += record["InferTuner_vs_DS2_Savings"]
+            if record["InferTuner_vs_ContTune_Savings"]:
+                total_savings_conttune += record["InferTuner_vs_ContTune_Savings"]
+
+        # 转换为DataFrame并保存
+        df = pd.DataFrame(all_records)
+        df.to_csv(output_csv, index=False)
+        print(f"\n✅ 结果已保存到 {output_csv}")
+        print(f"🎯 总GPU节省 (InferTuner vs DS2): {total_savings_ds2}")
+        print(f"🎯 总GPU节省 (InferTuner vs ContTune): {total_savings_conttune}")
 
 def main():
     """主函数"""

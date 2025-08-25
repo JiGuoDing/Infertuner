@@ -3,7 +3,7 @@ import glob
 import pandas as pd
 
 # 设置你的工作目录（可选）
-os.chdir('/home/jgd/workplace/Infertuner/data/submit_job_v3')
+os.chdir('/home/jgd/workplace/Infertuner/data/submit_job_Falcon3-7B-Instruct_1000ms/')
 
 # 获取所有匹配的 CSV 文件
 csv_files = glob.glob('p*.csv')

@@ -1,0 +1,2 @@
+experiment_id,parallelism,batch_size,target_rate,total_requests,success_requests,success_rate_pct,throughput_rps,avg_latency_ms,avg_wait_ms,avg_inference_ms,processing_time_sec,actual_batches,avg_batch_size,load_balance_pct,resource_utilization_pct
+p3b2_24req,3,2,0.5000,24,24,100.0000,0.0609,103670.8750,586.0417,103084.8333,394.1710,12,2.0000,100.0000,0.8118

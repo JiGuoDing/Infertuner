@@ -25,17 +25,20 @@ public class TwoLevelCacheManager {
     
     // 统计信息
     private long totalRequests = 0;
+    // 本地缓存命中次数
     private long localHits = 0;
+    // 远程缓存命中次数
     private long remoteHits = 0;
+    // 缓存未命中次数
     private long misses = 0;
     
     public TwoLevelCacheManager() {
-        logger.info("初始化二级缓存管理器，本地缓存大小: {}", maxLocalCacheSize);
+        logger.info("初始化二级缓存管理器，本地缓存大小: {}，模拟远端缓存访问延迟: {}", maxLocalCacheSize, remoteAccessDelayMs);
     }
     
     public TwoLevelCacheManager(int maxLocalCacheSize) {
         this.maxLocalCacheSize = maxLocalCacheSize;
-        logger.info("初始化二级缓存管理器，本地缓存大小: {}", maxLocalCacheSize);
+        logger.info("初始化二级缓存管理器，本地缓存大小: {}，模拟远端缓存访问延迟: {}", maxLocalCacheSize, remoteAccessDelayMs);
     }
     
     /**
@@ -52,35 +55,35 @@ public class TwoLevelCacheManager {
             entry.updateAccess();
             logger.debug("本地缓存命中: {}", cacheKey);
             return entry;
-        }
-        
-        // 2. 查远端缓存
-        logger.debug("本地缓存未命中，查询远端: {}", cacheKey);
-        try {
-            // 模拟远端访问延迟
-            Thread.sleep(remoteAccessDelayMs);
-            
-            entry = remoteCache.get(cacheKey);
-            if (entry != null) {
-                remoteHits++;
-                entry.updateAccess();
-                
-                // 将远端数据加载到本地缓存
-                putToLocalCache(cacheKey, entry);
-                logger.debug("远端缓存命中并加载到本地: {}", cacheKey);
-                return entry;
+        } else {
+            // 2. 本地缓存未命中，再查远端缓存
+            logger.debug("本地缓存未命中，查询远端: {}", cacheKey);
+            try {
+                // 模拟远端访问延迟
+                Thread.sleep(remoteAccessDelayMs);
+
+                entry = remoteCache.get(cacheKey);
+                if (entry != null) {
+                    remoteHits++;
+                    entry.updateAccess();
+
+                    // 将远端数据加载到本地缓存
+                    putToLocalCache(cacheKey, entry);
+                    logger.debug("远端缓存命中并加载到本地: {}", cacheKey);
+                    return entry;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.error("远端缓存访问被中断", e);
             }
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            logger.error("远端缓存访问被中断", e);
+
+            // 3. 缓存未命中
+            misses++;
+            logger.debug("缓存完全未命中: {}", cacheKey);
+            return null;
         }
-        
-        // 3. 缓存未命中
-        misses++;
-        logger.debug("缓存完全未命中: {}", cacheKey);
-        return null;
     }
-    
+
     /**
      * 存储缓存条目
      */
@@ -92,7 +95,7 @@ public class TwoLevelCacheManager {
         putToLocalCache(cacheKey, entry);
         remoteCache.put(cacheKey, entry);
         
-        logger.debug("缓存条目已存储: {}", cacheKey);
+        logger.debug("缓存条目已存储至本地缓存和远端缓存: {}", cacheKey);
     }
     
     /**
