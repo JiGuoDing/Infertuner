@@ -17,6 +17,8 @@ public class InferenceRequest {
     public long processingTimestamp;
     // 请求执行完成的时间戳
     public long completedTimestamp;
+    // TODO 为每个请求添加请求模型字段
+    // public LLMModel llmModel;
     
     public InferenceRequest() {}
 

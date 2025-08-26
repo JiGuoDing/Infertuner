@@ -5,6 +5,8 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -25,6 +27,8 @@ public class BasicRequestSource implements SourceFunction<InferenceRequest> {
         "What makes a memorable melody in reggae music? List 3-5 key points.",
         "Suggest a day-by-day plan for Toronto with 3-4 activities per day and dining options. Focus on the most important aspects."
     };
+    // 模型池
+    private final List<String> modelScope = List.of("Falcon3-7B-Instruct", "llama-2-13B", "Qwen3-30B-A3B-Instruct");
     
     private final int maxRequests;
     private final long interval;

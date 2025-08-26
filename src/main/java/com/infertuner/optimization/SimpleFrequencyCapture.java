@@ -4,12 +4,15 @@ import java.util.*;
 
 /**
  * 简化版本的频率捕获器 - 用于FREQUENCY策略
+ * <br>
  * 不依赖外部库，使用Java内置数据结构
+ * <br>
+ * 通过分析一段时间内的键(key)的访问模式，来推荐一个合适的缓存容量。
  */
 public class SimpleFrequencyCapture {
     
     private final int bucketCount;
-    private final long[][] buckets;  // [访问次数, 唯一键数量]
+    private final long[][] buckets;  // [该桶总访问次数, 桶中唯一(不同)键数量]
     private final Set<String> seenKeys;  // 简化版布隆过滤器
     private long totalCount;
     
@@ -38,7 +41,7 @@ public class SimpleFrequencyCapture {
     }
     
     /**
-     * 计算达到目标命中率需要的缓存大小
+     * 核心逻辑：计算达到目标命中率需要的缓存大小
      * @param targetHitRate 目标命中率 (0.0 - 1.0)
      * @return 建议的缓存大小
      */
@@ -47,10 +50,11 @@ public class SimpleFrequencyCapture {
             return 0;
         }
         
-        // 创建非空bucket列表并按平均频率排序
+        // 创建非空bucket列表并按平均频率降序排列
         List<BucketInfo> validBuckets = new ArrayList<>();
         for (int i = 0; i < bucketCount; i++) {
             if (buckets[i][1] > 0) {  // 有唯一键的bucket
+                // 计算每一个bucket的平均访问频率，作为桶内键的平均热度
                 double avgFreq = (double) buckets[i][0] / buckets[i][1];
                 validBuckets.add(new BucketInfo(i, buckets[i][0], buckets[i][1], avgFreq));
             }
@@ -63,11 +67,13 @@ public class SimpleFrequencyCapture {
         long targetAccessCount = (long) Math.ceil(totalCount * targetHitRate);
         long currentAccessSum = 0;
         long currentKeySum = 0;
-        
+
+        // 根据用户传入的 targetHitRate 和记录的 totalCount 计算出需要覆盖的目标访问量
         for (BucketInfo bucket : validBuckets) {
             currentAccessSum += bucket.accessCount;
             currentKeySum += bucket.uniqueKeys;
-            
+
+            // 累加的访问次数达到了目标访问量，此时累加的唯一键值数量就是推荐的缓存大小
             if (currentAccessSum >= targetAccessCount) {
                 break;
             }

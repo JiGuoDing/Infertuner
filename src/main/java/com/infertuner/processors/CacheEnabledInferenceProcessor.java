@@ -22,7 +22,8 @@ import java.util.*;
 public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceRequest, InferenceResponse> {
     
     private static final Logger logger = LoggerFactory.getLogger(CacheEnabledInferenceProcessor.class);
-    
+
+    // 缓存策略枚举类
     public enum CacheStrategy {
         STATIC,     // 固定大小策略
         FLUID,      // 动态调整策略
@@ -64,8 +65,10 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
     private transient SimpleFrequencyCapture frequencyCapture;
     
     // === 其他配置 ===
-    private static final String MODEL_PATH = "/workspace/models/Qwen1.5-1.8B-Chat";
-    private static final String PYTHON_SCRIPT = "/workspace/infertuner/scripts/simple_inference_service.py";
+    // 模型路径
+    private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/Falcon3-7B-Instruct";
+    // 推理脚本路径
+    private static final String PYTHON_SCRIPT = "/mnt/tidal-alsh01/usr/suqian/scripts/batch_inference_service_new.py";
     private static final int REMOTE_DELAY_MS = 1000;
     
     // === 统计信息 ===
