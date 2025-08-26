@@ -14,7 +14,7 @@ public class KVCacheEntry {
     public KVCacheEntry(String userId, String sessionId, byte[] kvData) {
         this.userId = userId;
         this.sessionId = sessionId;
-        this.cacheKey = String.format("user_%s_session_%s", userId, sessionId);
+        this.cacheKey = String.format("%s-%s", userId, sessionId);
         this.kvData = kvData;
         this.timestamp = System.currentTimeMillis();
         this.accessCount = 1;

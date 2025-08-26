@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.UnknownHostException;
 import java.util.*;
 
 /**
@@ -29,6 +30,8 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
         FLUID,      // 动态调整策略
         FREQUENCY   // 频率分析策略
     }
+
+    private String nodeIP;
     
     private transient Process pythonProcess;
     private transient BufferedWriter pythonInput;
@@ -70,6 +73,8 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
     // 推理脚本路径
     private static final String PYTHON_SCRIPT = "/mnt/tidal-alsh01/usr/suqian/scripts/batch_inference_service_new.py";
     private static final int REMOTE_DELAY_MS = 1000;
+    // 每个字符对应的KV缓存字节数
+    private static final int BYTES_PER_CHAR = 2 * 1024;
     
     // === 统计信息 ===
     private int totalRequests = 0;
@@ -77,11 +82,12 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
     private double totalLatency = 0.0;
     
     // === FLUID策略专用变量 ===
+    // 记录请求到达时间
     private final List<Long> requestTimestamps = new ArrayList<>();
     private double historicalAverageRate = 0.0;
     private int requestsSinceLastAdjustment = 0;
     private long lastAdjustmentTime = System.currentTimeMillis();
-    
+
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
@@ -97,12 +103,21 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
         
         // 初始化二级缓存管理器
         cacheManager = new TwoLevelCacheManager(currentCacheSize);
+
+        // 获取的当前节点IP
+        try {
+            nodeIP = java.net.InetAddress.getLocalHost().getHostAddress();
+        } catch (UnknownHostException e) {
+            logger.error("获取当前节点IP失败", e);
+            nodeIP = "Unknown-hostIP";
+        }
         
         objectMapper = new ObjectMapper();
         random = new Random();
         
         // 启动Python推理服务
-        ProcessBuilder pb = new ProcessBuilder("python3", PYTHON_SCRIPT, MODEL_PATH);
+        ProcessBuilder pb = new ProcessBuilder("/opt/conda/envs/vllm-env/bin/python", PYTHON_SCRIPT, nodeIP, MODEL_PATH);
+        pb.redirectErrorStream(false);
         pb.environment().put("PYTHONUNBUFFERED", "1");
         pythonProcess = pb.start();
         pythonInput = new BufferedWriter(new OutputStreamWriter(pythonProcess.getOutputStream()));
@@ -111,18 +126,84 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
         
         logger.info("二级缓存推理服务已启动");
     }
+
+    @Override
+    public InferenceResponse map(InferenceRequest request) throws Exception {
+        totalRequests++;
+        requestsSinceLastAdjustment++;
+
+        // === 1. 生成KV缓存Key(每个会话一份KV缓存) ===
+        // userId: user_%04d, userIndex
+        String sessionId = generateSessionIdOfOneUser(request.userId);
+
+        // === 2. 如果策略是 Fluid,则记录到请求到达时间表 ===
+        if (CACHE_STRATEGY == CacheStrategy.FLUID) {
+            requestTimestamps.add(System.currentTimeMillis());
+        }
+
+        // 所有策略都记录到频率捕获器
+        String kvKey = request.userId + "_" + sessionId;
+        frequencyCapture.add(kvKey);
+
+        // === 3. 定期检查是否需要调整缓存大小 ===
+        // 每 15 个请求检查一次
+        if (CACHE_STRATEGY != CacheStrategy.STATIC &&
+                requestsSinceLastAdjustment >= ADJUSTMENT_INTERVAL) {
+
+            int newSize = getCurrentCacheSize();
+            if (newSize != currentCacheSize) {
+                adjustCacheSize(newSize);
+            }
+            requestsSinceLastAdjustment = 0;
+            lastAdjustmentTime = System.currentTimeMillis();
+        }
+
+        // === 4. 使用二级缓存管理器查找缓存 ===
+        KVCacheEntry kvEntry = cacheManager.get(kvKey);
+
+        InferenceResponse response;
+
+        if (kvEntry != null) {
+            // 🟢 缓存命中在本地缓存或远端缓存：正常推理
+            hitCount++;
+            response = performInference(request, false);
+            response.fromCache = true;
+            response.modelName = response.modelName + "-Hit";
+
+            logger.info("[{}] 命中: {}ms (策略={}, 缓存大小={})",
+                    request.requestId, response.inferenceTimeMs,
+                    CACHE_STRATEGY.name(), currentCacheSize);
+
+        } else {
+            // 🔴 缓存未命中：推理+远端延迟，然后模拟创建新KV值并存如缓存
+            response = performInference(request, true);
+            response.fromCache = false;
+            response.modelName = response.modelName + "-Miss";
+
+            // 存储新KV数据到二级缓存
+            byte[] kvData = generateKVData(request);
+            cacheManager.put(request.userId, sessionId, kvData);
+
+            logger.info("[{}] 缓存未命中: 推理时延{}ms (+{}ms) (策略={}, 缓存大小={})",
+                    request.requestId, response.inferenceTimeMs, REMOTE_DELAY_MS,
+                    CACHE_STRATEGY.name(), currentCacheSize);
+        }
+
+        totalLatency += response.inferenceTimeMs;
+
+        return response;
+    }
     
     /**
      * 根据策略获取当前缓存大小
      */
     private int getCurrentCacheSize() {
         switch (CACHE_STRATEGY) {
-            case STATIC:
-                return STATIC_CACHE_SIZE;
             case FLUID:
                 return calculateFluidCacheSize();
             case FREQUENCY:
                 return calculateFrequencyCacheSize();
+            case STATIC:
             default:
                 return STATIC_CACHE_SIZE;
         }
@@ -133,7 +214,7 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
      */
     private int calculateFrequencyCacheSize() {
         if (totalRequests < 10) {
-            logger.debug("FREQUENCY初始化: 请求数不足，使用初始大小={}", INITIAL_CACHE_SIZE);
+            logger.debug("FREQUENCY初始化: 请求数不足({} < 10)，使用初始大小={}", totalRequests, INITIAL_CACHE_SIZE);
             return INITIAL_CACHE_SIZE;
         }
         
@@ -146,7 +227,7 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
         }
         
         SimpleFrequencyCapture.Stats stats = frequencyCapture.getStats();
-        logger.info("FREQUENCY计算: 目标命中率={}, 估算大小={}, 实际大小={}, 统计={}",
+        logger.info("FREQUENCY计算: 目标缓存命中率={}, 估算缓存大小={}, 实际缓存大小={}, FrequencyCapture统计={}",
                    String.format("%.2f", TARGET_HIT_RATE), estimatedSize, newSize, stats);
         
         return newSize;
@@ -154,51 +235,59 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
     
     /**
      * FLUID策略的缓存大小计算
+     * <br>
+     * 核心思想：根据实时请求速率的变化来自动扩缩容
      */
     private int calculateFluidCacheSize() {
+        // 冷启动阶段
         if (totalRequests < 5) {
             historicalAverageRate = 1.0;
             logger.debug("FLUID初始化: 请求数不足，使用初始大小={}", INITIAL_CACHE_SIZE);
             return INITIAL_CACHE_SIZE;
         }
-        
+
+        // 获取最近一个时间窗口的请求速率
         double currentRate = calculateCurrentRequestRate();
         
         if (historicalAverageRate == 0.0) {
             historicalAverageRate = Math.max(currentRate, 0.5);
         } else {
+            // 为了防止因瞬间的请求抖动导致缓存大小频繁变化，使用指数移动平均(EMA)算法来计算一个平滑、长期的历史平均请求速率
             historicalAverageRate = 0.7 * historicalAverageRate + 0.3 * currentRate;
             historicalAverageRate = Math.max(historicalAverageRate, 0.1);
         }
-        
+
+        // 定义动态阈值，基于平滑后的历史平均请求速率，计算出扩缩容的阈值
         double expandThreshold = EXPAND_THRESHOLD * historicalAverageRate;
         double shrinkThreshold = SHRINK_THRESHOLD * historicalAverageRate;
         
-        logger.info("FLUID调整检查: 当前速率={}, 历史均值={}, 扩容阈值={}, 缩容阈值={}, 当前缓存={}", 
+        logger.info("FLUID调整检查: 当前请求速率={}, 历史请求速率均值={}, 扩容阈值={}, 缩容阈值={}, 当前缓存容量={}",
                    String.format("%.2f", currentRate), 
                    String.format("%.2f", historicalAverageRate), 
                    String.format("%.2f", expandThreshold), 
                    String.format("%.2f", shrinkThreshold), 
                    currentCacheSize);
-        
+
+        // 扩容
         if (currentRate > expandThreshold) {
             int newSize = (int) Math.ceil(currentCacheSize * EXPAND_FACTOR);
             newSize = Math.min(newSize, MAX_CACHE_SIZE);
-            logger.info("FLUID扩容: 当前速率={} > 阈值={}, 缓存 {} → {}", 
+            logger.info("FLUID扩容: 当前请求速率={} > 阈值={}, 缓存容量 {} → {}",
                        String.format("%.2f", currentRate), 
                        String.format("%.2f", expandThreshold), 
                        currentCacheSize, newSize);
             return newSize;
+        // 缩容
         } else if (currentRate < shrinkThreshold) {
             int newSize = (int) Math.ceil(currentCacheSize / SHRINK_FACTOR);
             newSize = Math.max(newSize, MIN_CACHE_SIZE);
-            logger.info("FLUID缩容: 当前速率={} < 阈值={}, 缓存 {} → {}", 
+            logger.info("FLUID缩容: 当前请求速率={} < 阈值={}, 缓存容量 {} → {}",
                        String.format("%.2f", currentRate), 
                        String.format("%.2f", shrinkThreshold), 
                        currentCacheSize, newSize);
             return newSize;
         } else {
-            logger.debug("FLUID保持: 当前速率={}, 历史均值={}, 缓存大小={}", 
+            logger.debug("FLUID保持: 当前请求速率={}, 历史请求速率均值={}, 缓存容量={}",
                         String.format("%.2f", currentRate), 
                         String.format("%.2f", historicalAverageRate), 
                         currentCacheSize);
@@ -207,7 +296,7 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
     }
     
     /**
-     * 计算当前请求速率
+     * 计算在最近一个时间窗口内的平均每秒请求数
      */
     private double calculateCurrentRequestRate() {
         long currentTime = System.currentTimeMillis();
@@ -228,71 +317,6 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
                     requestsInWindow, actualWindowMs, String.format("%.2f", rate));
         
         return rate;
-    }
-    
-    @Override
-    public InferenceResponse map(InferenceRequest request) throws Exception {
-        totalRequests++;
-        requestsSinceLastAdjustment++;
-        
-        // === 1. 生成KV缓存Key ===
-        String sessionId = generateSessionId(request.userId);
-        
-        // === 2. 记录到对应的策略跟踪器 ===
-        if (CACHE_STRATEGY == CacheStrategy.FLUID) {
-            requestTimestamps.add(System.currentTimeMillis());
-        }
-        
-        // 所有策略都记录到频率捕获器
-        String kvKey = request.userId + "_" + sessionId;
-        frequencyCapture.add(kvKey);
-        
-        // === 3. 定期检查是否需要调整缓存大小 ===
-        if (CACHE_STRATEGY != CacheStrategy.STATIC && 
-            requestsSinceLastAdjustment >= ADJUSTMENT_INTERVAL) {
-            
-            int newSize = getCurrentCacheSize();
-            if (newSize != currentCacheSize) {
-                adjustCacheSize(newSize);
-            }
-            requestsSinceLastAdjustment = 0;
-            lastAdjustmentTime = System.currentTimeMillis();
-        }
-        
-        // === 4. 使用二级缓存管理器查找缓存 ===
-        KVCacheEntry kvEntry = cacheManager.get(request.userId, sessionId);
-        
-        InferenceResponse response;
-        
-        if (kvEntry != null) {
-            // 🟢 缓存命中：正常推理
-            hitCount++;
-            response = performInference(request, false);
-            response.fromCache = true;
-            response.modelName = response.modelName + "-Hit";
-            
-            logger.info("[{}] 命中: {}ms (策略={}, 缓存大小={})", 
-                       request.requestId, response.inferenceTimeMs, 
-                       CACHE_STRATEGY.name(), currentCacheSize);
-            
-        } else {
-            // 🔴 缓存未命中：推理+远端延迟，然后存储新KV
-            response = performInference(request, true);
-            response.fromCache = false;
-            response.modelName = response.modelName + "-Miss";
-            
-            // 存储新KV数据到二级缓存
-            byte[] kvData = generateKVData(request);
-            cacheManager.put(request.userId, sessionId, kvData);
-            
-            logger.info("[{}] 未命中: {}ms (+{}ms) (策略={}, 缓存大小={})", 
-                       request.requestId, response.inferenceTimeMs, REMOTE_DELAY_MS,
-                       CACHE_STRATEGY.name(), currentCacheSize);
-        }
-        
-        totalLatency += response.inferenceTimeMs;
-        
-        return response;
     }
     
     /**
@@ -317,9 +341,24 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
      * 生成模拟的KV数据
      */
     private byte[] generateKVData(InferenceRequest request) {
-        // 模拟KV cache数据：基于用户消息生成固定大小的数据
-        String data = "KV_" + request.userId + "_" + request.userMessage.hashCode();
-        return data.getBytes();
+        // // 模拟KV cache数据：基于用户消息生成固定大小的数据
+        // String data = "KV_" + request.userId + "_" + request.userMessage.hashCode();
+        // return data.getBytes();
+
+        // 根据用户消息长度估算KV缓存大小
+        int messageLength = request.userMessage.length();
+        // 保证一个最小大小，避免消息过短时缓存大小为0
+        int estimatedSize = Math.max(1, messageLength) * BYTES_PER_CHAR;
+
+        // 创建一个指定大小的字节数组作为模拟数据
+        byte[] kvData = new byte[estimatedSize];
+        // （可选）用随机数据填充，使其内容不为空
+        random.nextBytes(kvData);
+
+        logger.debug("为请求 {} 生成模拟KV数据，消息长度: {}, 估算大小: {} bytes",
+                request.getRequestId(), messageLength, estimatedSize);
+
+        return kvData;
     }
     
     /**
@@ -363,9 +402,10 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
     /**
      * 生成用户会话ID
      */
-    private String generateSessionId(String userId) {
+    private String generateSessionIdOfOneUser(String userId) {
         int userNum = Integer.parseInt(userId.replaceAll("\\D", ""));
-        
+
+        // 模拟一个用户可能拥有多个独立上下文会话
         if (userNum <= 5) {
             return String.valueOf(userNum % 2);
         } else if (userNum <= 10) {

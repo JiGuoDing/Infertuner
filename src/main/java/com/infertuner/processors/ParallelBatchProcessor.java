@@ -98,6 +98,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         ProcessBuilder pb = new ProcessBuilder(
                 "/opt/conda/envs/vllm-env/bin/python", BATCH_SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId));
         pb.redirectErrorStream(false);
+        pb.environment().put("PYTHONUNBUFFERED", "1");
         inferenceProcess = pb.start();
 
         processInput = new BufferedWriter(new OutputStreamWriter(inferenceProcess.getOutputStream()));

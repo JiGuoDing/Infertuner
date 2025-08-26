@@ -1,21 +1,27 @@
 package com.infertuner.sinks;
 
 import com.infertuner.models.InferenceResponse;
-import org.apache.flink.streaming.api.functions.sink.SinkFunction;
+import org.apache.flink.configuration.Configuration;
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * 简单结果输出汇聚器
  */
-public class SimpleResultSink implements SinkFunction<InferenceResponse> {
+public class SimpleResultSink extends RichSinkFunction<InferenceResponse> {
     
     private static final Logger logger = LoggerFactory.getLogger(SimpleResultSink.class);
     
     private int totalCount = 0;
     private int successCount = 0;
     private double totalTime = 0.0;
-    
+
+    @Override
+    public void open(Configuration parameters) throws Exception {
+        super.open(parameters);
+    }
+
     @Override
     public void invoke(InferenceResponse response, Context context) throws Exception {
         totalCount++;
@@ -23,10 +29,9 @@ public class SimpleResultSink implements SinkFunction<InferenceResponse> {
         // 输出单个结果
         logger.info("=== 结果 #{} ===", totalCount);
         logger.info("请求ID: {} | 用户: {}", response.requestId, response.userId);
-        logger.info("问题: {}", truncate(response.userMessage, 60));
-        logger.info("回答: {}", truncate(response.aiResponse, 80));
-        
-        // 格式化数值
+        logger.info("问题: {}", truncate(response.userMessage, 100));
+        logger.info("回答: {}", truncate(response.aiResponse, 200));
+
         String timeStr = String.format("%.1f", response.inferenceTimeMs);
         String statusStr = response.success ? "成功" : "失败";
         

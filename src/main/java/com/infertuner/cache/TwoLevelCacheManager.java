@@ -45,9 +45,48 @@ public class TwoLevelCacheManager {
      * 获取缓存条目
      */
     public KVCacheEntry get(String userId, String sessionId) {
-        String cacheKey = String.format("user_%s_session_%s", userId, sessionId);
+        String cacheKey = String.format("%s-%s", userId, sessionId);
         totalRequests++;
         
+        // 1. 先查本地缓存
+        KVCacheEntry entry = localCache.get(cacheKey);
+        if (entry != null) {
+            localHits++;
+            entry.updateAccess();
+            logger.debug("本地缓存命中: {}", cacheKey);
+            return entry;
+        } else {
+            // 2. 本地缓存未命中，再查远端缓存
+            logger.debug("本地缓存未命中，查询远端: {}", cacheKey);
+            try {
+                // 模拟远端访问延迟
+                Thread.sleep(remoteAccessDelayMs);
+
+                entry = remoteCache.get(cacheKey);
+                if (entry != null) {
+                    remoteHits++;
+                    entry.updateAccess();
+
+                    // 将远端数据加载到本地缓存
+                    putToLocalCache(cacheKey, entry);
+                    logger.debug("远端缓存命中并加载到本地: {}", cacheKey);
+                    return entry;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                logger.error("远端缓存访问被中断", e);
+            }
+
+            // 3. 缓存未命中
+            misses++;
+            logger.debug("缓存完全未命中: {}", cacheKey);
+            return null;
+        }
+    }
+
+    public KVCacheEntry get(String cacheKey) {
+        totalRequests++;
+
         // 1. 先查本地缓存
         KVCacheEntry entry = localCache.get(cacheKey);
         if (entry != null) {
