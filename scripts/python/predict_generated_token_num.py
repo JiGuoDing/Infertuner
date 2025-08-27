@@ -135,6 +135,7 @@ def predict_generated_token_num(proxy_tokenizer, proxy_model, pca_embedding_mode
     """
 
 
+
 def main():
     if len(sys.argv) < 6:
         logger.error("Usage: python predict_generated_token_num.py <node_ip> <proxy_model_name> <inference_model_name> <predictor_path> <pca_model_path>")
