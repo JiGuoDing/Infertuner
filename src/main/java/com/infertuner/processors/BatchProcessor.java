@@ -78,8 +78,7 @@ public class BatchProcessor extends RichMapFunction<InferenceRequest, InferenceR
         logger.info("启动节点 {} 推理服务...", nodeIP);
 
         ProcessBuilder pb = new ProcessBuilder(
-                "/opt/conda/envs/vllm-env/bin/python", SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId)
-        );
+                "/opt/conda/envs/vllm-env/bin/python", SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId));
 
         pb.redirectErrorStream(false);
         inferenceProcess = pb.start();
@@ -108,7 +107,7 @@ public class BatchProcessor extends RichMapFunction<InferenceRequest, InferenceR
         // 计算等待时间：第1个请求等待最久，最后一个请求不等待
         long waitTime = 0;
         if (batchSize > 1) {
-            waitTime = (batchSize - positionInBatch) * 400;  // 每个位置差200ms
+            waitTime = (batchSize - positionInBatch) * 400; // 每个位置差200ms
         }
 
         logger.info("节点 {} 收到请求 {} (第{}个，批次位置{}), 模拟等待{}ms",
@@ -124,11 +123,11 @@ public class BatchProcessor extends RichMapFunction<InferenceRequest, InferenceR
 
         // 设置攒批相关信息
         response.waitTimeMs = waitTime;
-        response.batchProcessTimeMs = (long)response.inferenceTimeMs;
-        response.totalLatencyMs = waitTime + (long)response.inferenceTimeMs;
+        response.batchProcessTimeMs = (long) response.inferenceTimeMs;
+        response.totalLatencyMs = waitTime + (long) response.inferenceTimeMs;
 
         logger.info("节点 {} 处理 {} 完成: 等待={}ms, 推理={}ms, 总延迟={}ms",
-                nodeIP, request.requestId, waitTime, (long)response.inferenceTimeMs, response.totalLatencyMs);
+                nodeIP, request.requestId, waitTime, (long) response.inferenceTimeMs, response.totalLatencyMs);
 
         return response;
     }
@@ -146,8 +145,7 @@ public class BatchProcessor extends RichMapFunction<InferenceRequest, InferenceR
                     request.userMessage,
                     request.maxNewTokens,
                     request.requestId,
-                    actualBatchSize
-            );
+                    actualBatchSize);
 
             String requestJson = objectMapper.writeValueAsString(requestData);
 
@@ -162,15 +160,16 @@ public class BatchProcessor extends RichMapFunction<InferenceRequest, InferenceR
             ResponseData responseData = objectMapper.readValue(responseJson, ResponseData.class);
 
             response.success = responseData.success;
-            response.aiResponse = responseData.response;
+            response.responseText = responseData.response;
             response.inferenceTimeMs = responseData.inference_time_ms;
-            response.responseDescription = responseData.model_name + String.format(" (GPU-%d,Batch-%d)", gpuId, actualBatchSize);
+            response.responseDescription = responseData.model_name
+                    + String.format(" (GPU-%d,Batch-%d)", gpuId, actualBatchSize);
             response.fromCache = false;
 
         } catch (Exception e) {
             logger.error("GPU {} 推理失败: {}", gpuId, e.getMessage(), e);
             response.success = false;
-            response.aiResponse = "推理失败: " + e.getMessage();
+            response.responseText = "推理失败: " + e.getMessage();
             response.inferenceTimeMs = 0;
             response.responseDescription = "Error-GPU-" + gpuId;
         }

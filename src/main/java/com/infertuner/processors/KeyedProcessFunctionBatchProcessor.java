@@ -21,10 +21,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * 简化的ProcessFunction攒批处理器，基于 Flink KeyedProcessFunction 实现。
  */
-public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<String, InferenceRequest, InferenceResponse> {
+public class KeyedProcessFunctionBatchProcessor
+        extends KeyedProcessFunction<String, InferenceRequest, InferenceResponse> {
 
     private static final Logger logger = LoggerFactory.getLogger(KeyedProcessFunctionBatchProcessor.class);
-
 
     // GPU相关
     private int gpuId;
@@ -125,9 +125,10 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Str
     }
 
     @Override
-    public void processElement(InferenceRequest request, Context ctx, Collector<InferenceResponse> out) throws Exception {
+    public void processElement(InferenceRequest request, Context ctx, Collector<InferenceResponse> out)
+            throws Exception {
         /*
-        查看 key
+         * 查看 key
          */
         String currentKey = ctx.getCurrentKey();
         logger.info("处理请求 {}，当前Key: {}", request.requestId, currentKey);
@@ -199,10 +200,10 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Str
     }
 
     private void processBatch(List<InferenceRequest> batch,
-                              List<Long> arrivalTimes,
-                              long batchTriggerTime,
-                              Collector<InferenceResponse> out,
-                              String triggerReason) throws Exception {
+            List<Long> arrivalTimes,
+            long batchTriggerTime,
+            Collector<InferenceResponse> out,
+            String triggerReason) throws Exception {
 
         int batchSize = batch.size();
         int currentBatchNum = batchCounter.value() + 1;
@@ -250,15 +251,15 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Str
         }
 
         /*
-            result = {
-                "responses": batch_responses,
-                "batch_size": batch_size,
-                "batch_id": batch_id,
-                "total_inference_time_ms": round(total_batch_time, 2),
-                "success": True,
-                "timestamp": int(time.time() * 1000),
-                "error": "No error"
-            }
+         * result = {
+         * "responses": batch_responses,
+         * "batch_size": batch_size,
+         * "batch_id": batch_id,
+         * "total_inference_time_ms": round(total_batch_time, 2),
+         * "success": True,
+         * "timestamp": int(time.time() * 1000),
+         * "error": "No error"
+         * }
          */
         // 解析python进程返回的推理响应
         BatchResponseData batchResponse = objectMapper.readValue(responseJson, BatchResponseData.class);
@@ -284,7 +285,7 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Str
             response.requestId = originalReq.requestId;
             response.userId = originalReq.userId;
             response.userMessage = originalReq.userMessage;
-            response.aiResponse = singleResp.response;
+            response.responseText = singleResp.response;
             response.inferenceTimeMs = avgProcessTimePerRequest;
             response.success = singleResp.success;
             response.responseDescription = String.format("Node-%s", nodeIP);
@@ -307,11 +308,11 @@ public class KeyedProcessFunctionBatchProcessor extends KeyedProcessFunction<Str
 
             response.waitTimeMs = waitTime;
             response.batchProcessTimeMs = totalProcessTime;
-            response.totalLatencyMs = waitTime + (long)avgProcessTimePerRequest;
+            response.totalLatencyMs = waitTime + (long) avgProcessTimePerRequest;
 
             // if (i < 3) { // 只打印前3个请求的详细信息
             logger.info("请求{}: 到达={}, 触发={}, 等待={}ms",
-                    i+1, new java.util.Date(requestArrivalTime),
+                    i + 1, new java.util.Date(requestArrivalTime),
                     new java.util.Date(realBatchTriggerTime), waitTime);
             // }
 

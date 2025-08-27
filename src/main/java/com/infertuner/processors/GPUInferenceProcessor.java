@@ -13,9 +13,9 @@ import java.net.UnknownHostException;
 import java.util.concurrent.TimeUnit;
 
 public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, InferenceResponse> {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(GPUInferenceProcessor.class);
-    
+
     private int gpuId;
     private int taskIndex;
     private String nodeIP;
@@ -30,12 +30,12 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
     private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/".concat(MODEL_NAME);
     // 推理服务脚本路径
     private static final String SERVICE_SCRIPT = "/mnt/tidal-alsh01/usr/suqian/scripts/simple_inference_service.py";
-    
+
     @Override
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
         /*
-          在Flink启动时调用
+         * 在Flink启动时调用
          */
 
         // 获取当前子任务的编号
@@ -66,9 +66,8 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
 
         // 使用ProcessBuilder启动Python推理进程，进程输入参数为nodeIP,模型路径和GPU ID
         ProcessBuilder pb = new ProcessBuilder(
-            "/opt/conda/envs/vllm-env/bin/python", SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId)
-        );
-        
+                "/opt/conda/envs/vllm-env/bin/python", SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId));
+
         pb.redirectErrorStream(false);
         inferenceProcess = pb.start();
 
@@ -88,15 +87,15 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
         if (!inferenceProcess.isAlive()) {
             throw new RuntimeException("节点 " + nodeIP + " 推理服务初始化失败");
         }
-        
+
         logger.info("✅ 节点 {} 推理服务初始化成功", nodeIP);
     }
-    
+
     @Override
     public InferenceResponse map(InferenceRequest request) throws Exception {
         /*
-        Flink 流处理的核心，每当流里有一个 InferenceRequest 进来，就会调用一次，生成对应的InferenceResponse。
-        作用：调用外部Python推理服务（通过进程管道通信），获取模型推理结果并包装返回。
+         * Flink 流处理的核心，每当流里有一个 InferenceRequest 进来，就会调用一次，生成对应的InferenceResponse。
+         * 作用：调用外部Python推理服务（通过进程管道通信），获取模型推理结果并包装返回。
          */
         long startTime = System.currentTimeMillis();
 
@@ -114,10 +113,10 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
         try {
             // 构造发送给 Python 服务的请求数据对象，包含推理请求的必要信息
             RequestData requestData = new RequestData(
-                request.userMessage,
-                request.maxNewTokens,
-                request.requestId,
-                request.batchSize  // 传递批大小给Python服务
+                    request.userMessage,
+                    request.maxNewTokens,
+                    request.requestId,
+                    request.batchSize // 传递批大小给Python服务
             );
 
             // 将请求对象序列化为 JSON 字符串，得到的requestJson在逻辑上是一行字符串（单一String对象）
@@ -136,37 +135,38 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
 
             // 将 JSON 响应反序列化为 Java 对象
             ResponseData responseData = objectMapper.readValue(responseJson, ResponseData.class);
-            
+
             response.success = responseData.success;
-            response.aiResponse = responseData.response;
+            response.responseText = responseData.response;
             // 记录推理耗时
             response.inferenceTimeMs = responseData.inference_time_ms;
-            response.responseDescription = responseData.model_name + String.format(" (NodeIP-%s,Batch-%d)", nodeIP, request.batchSize);
+            response.responseDescription = responseData.model_name
+                    + String.format(" (NodeIP-%s,Batch-%d)", nodeIP, request.batchSize);
             response.fromCache = false;
 
             // 设置批处理相关信息
             response.waitTimeMs = 0; // 简单处理器没有等待时间
-            response.batchProcessTimeMs = (long)response.inferenceTimeMs;
-            response.totalLatencyMs = (long)response.inferenceTimeMs;
-            
+            response.batchProcessTimeMs = (long) response.inferenceTimeMs;
+            response.totalLatencyMs = (long) response.inferenceTimeMs;
+
             logger.info("节点 {} 处理请求 {} 完成，耗时 {}ms，批大小: {}",
-                        nodeIP, request.requestId, String.format("%.2f", response.inferenceTimeMs), request.batchSize);
-            
+                    nodeIP, request.requestId, String.format("%.2f", response.inferenceTimeMs), request.batchSize);
+
         } catch (Exception e) {
             logger.error("节点 {} 处理请求失败: {}", nodeIP, e.getMessage(), e);
-            
+
             response.success = false;
-            response.aiResponse = "节点 " + nodeIP + " 处理失败: " + e.getMessage();
+            response.responseText = "节点 " + nodeIP + " 处理失败: " + e.getMessage();
             response.inferenceTimeMs = System.currentTimeMillis() - startTime;
             response.responseDescription = "Error-Node-" + nodeIP;
         }
         return response;
     }
-    
+
     @Override
     public void close() throws Exception {
         logger.info("关闭节点 {} 的推理服务...", nodeIP);
-        
+
         try {
             if (processInput != null) {
                 ShutdownCommand shutdownCmd = new ShutdownCommand();
@@ -200,7 +200,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
         public int max_tokens;
         public String request_id;
         public int batch_size;
-        
+
         public RequestData(String userMessage, int maxTokens, String requestId, int batchSize) {
             this.user_message = userMessage;
             this.max_tokens = maxTokens;
@@ -208,7 +208,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
             this.batch_size = batchSize;
         }
     }
-    
+
     private static class ResponseData {
         public boolean success;
         public String response;
@@ -218,7 +218,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
         public int batch_size;
         public long timestamp;
     }
-    
+
     private static class ShutdownCommand {
         public String command = "shutdown";
     }

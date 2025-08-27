@@ -28,10 +28,10 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     private String nodeIP;
     private int taskIndex;
     private int totalParallelism;
-    private transient Process inferenceProcess;  // 标记为transient
-    private transient BufferedWriter processInput;  // 标记为transient
-    private transient BufferedReader processOutput;  // 标记为transient
-    private transient ObjectMapper objectMapper;  // 标记为transient
+    private transient Process inferenceProcess; // 标记为transient
+    private transient BufferedWriter processInput; // 标记为transient
+    private transient BufferedReader processOutput; // 标记为transient
+    private transient ObjectMapper objectMapper; // 标记为transient
 
     // 攒批配置
     private int targetBatchSize = 4;
@@ -116,7 +116,8 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     }
 
     @Override
-    public void processElement(InferenceRequest request, Context ctx, Collector<InferenceResponse> out) throws Exception {
+    public void processElement(InferenceRequest request, Context ctx, Collector<InferenceResponse> out)
+            throws Exception {
         // 更新请求的被接受时间
         request.setAcceptedTimestamp(System.currentTimeMillis());
 
@@ -217,7 +218,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             response.requestId = originalReq.requestId;
             response.userId = originalReq.userId;
             response.userMessage = originalReq.userMessage;
-            response.aiResponse = singleResp.response;
+            response.responseText = singleResp.response;
             response.inferenceTimeMs = inferenceTime;
             response.success = singleResp.success;
             response.responseDescription = String.format("node-%s", nodeIP);
@@ -234,7 +235,8 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             response.batchProcessTimeMs = inferenceTime;
             response.totalLatencyMs = waitTime + inferenceTime;
 
-            logger.info("请求 {} 处理完成，等待 {} 毫秒，推理 {} 毫秒，总耗时 {} 毫秒", response.requestId, response.waitTimeMs, response.inferenceTimeMs, response.totalLatencyMs);
+            logger.info("请求 {} 处理完成，等待 {} 毫秒，推理 {} 毫秒，总耗时 {} 毫秒", response.requestId, response.waitTimeMs,
+                    response.inferenceTimeMs, response.totalLatencyMs);
 
             // 输出响应
             out.collect(response);

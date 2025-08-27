@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.infertuner.models.InferenceRequest;
 import com.infertuner.models.InferenceResponse;
 
-public class KeyedInferenceProcessor extends KeyedProcessFunction<String, InferenceRequest, InferenceResponse>{
+public class KeyedInferenceProcessor extends KeyedProcessFunction<String, InferenceRequest, InferenceResponse> {
     private static final Logger logger = LoggerFactory.getLogger(KeyedInferenceProcessor.class);
 
     String nodeIP;
@@ -36,5 +36,43 @@ public class KeyedInferenceProcessor extends KeyedProcessFunction<String, Infere
             Collector<InferenceResponse> out) throws Exception {
         // TODO [攒批]推理
     }
-    
+
+    private class ResponseData {
+        private String requestID;
+        private String responseText;
+        private boolean success;
+
+        ResponseData() {
+        };
+
+        ResponseData(String requestID, String responseText, boolean success) {
+            this.requestID = requestID;
+            this.responseText = responseText;
+            this.success = success;
+        }
+
+        public String getRequestID() {
+            return requestID;
+        }
+
+        public void setRequestID(String requestID) {
+            this.requestID = requestID;
+        }
+
+        public String getResponseText() {
+            return responseText;
+        }
+
+        public void setResponseText(String responseText) {
+            this.responseText = responseText;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+    }
 }

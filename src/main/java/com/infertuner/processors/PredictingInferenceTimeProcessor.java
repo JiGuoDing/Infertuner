@@ -10,8 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import javax.management.RuntimeErrorException;
-
 import org.apache.flink.api.common.functions.RichFlatMapFunction;
 import org.apache.flink.api.common.state.ListState;
 import org.apache.flink.api.common.state.ListStateDescriptor;
@@ -20,14 +18,15 @@ import org.apache.flink.util.Collector;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infertuner.models.InferenceRequest;
+import com.infertuner.models.InferenceResponse;
 
 /**
  * 用于接收请求并根据请求内容预测推理时间的算子
  */
-public class PredictingInferenceTimeProcessor extends RichFlatMapFunction <InferenceRequest, InferenceRequest>{
+public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<InferenceRequest, InferenceRequest> {
 
     private static final Logger logger = LoggerFactory.getLogger(PredictingInferenceTimeProcessor.class);
 
@@ -61,30 +60,38 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction <Infer
         }
 
         // 初始化状态缓存队列
-        ListStateDescriptor<InferenceRequest> descriptor = new ListStateDescriptor<>("request-buffer", InferenceRequest.class);
+        ListStateDescriptor<InferenceRequest> descriptor = new ListStateDescriptor<>("request-buffer",
+                InferenceRequest.class);
         requestState = getRuntimeContext().getListState(descriptor);
 
         // 从全局参数获取 batchsize 参数
         try {
-         Map<String, String> globalParams = getRuntimeContext().getExecutionConfig().getGlobalJobParameters().toMap();
-         if (globalParams.containsKey("batchsize")){
-            predictingBatchsize = Integer.parseInt(globalParams.get("batchsize"));
-         }
-        } catch (Exception exception) {}
+            Map<String, String> globalParams = getRuntimeContext().getExecutionConfig().getGlobalJobParameters()
+                    .toMap();
+            if (globalParams.containsKey("batchsize")) {
+                predictingBatchsize = Integer.parseInt(globalParams.get("batchsize"));
+            }
+        } catch (Exception exception) {
+        }
 
         // 创建 Python 预测推理时间进程
-        ProcessBuilder predictingInferenceTimeProcessBuilder= new ProcessBuilder("/opt/conda/envs/vllm-env/bin/python", PREDICTING_INFERENCE_TIME_SCRIPT, nodeIP);
-        // 决定是否将子进程的标准错误输出重定向到标准输出   false -> 保持分离(默认)，stdout 与 stderr 各自独立
+        ProcessBuilder predictingInferenceTimeProcessBuilder = new ProcessBuilder("/opt/conda/envs/vllm-env/bin/python",
+                PREDICTING_INFERENCE_TIME_SCRIPT, nodeIP);
+        // 决定是否将子进程的标准错误输出重定向到标准输出 false -> 保持分离(默认)，stdout 与 stderr 各自独立
         predictingInferenceTimeProcessBuilder.redirectErrorStream(false);
         // 当运行 Python 脚本时，强制 Python 的标准输出和标准错误不使用缓冲，输出会实时刷新，而不是等到缓冲区满或程序结束才输出
         predictingInferenceTimeProcessBuilder.environment().put("PYTHONUNBUFFERED", "1");
 
-        predictingInferenceTimeProcess = predictingInferenceTimeProcessBuilder.start();;
+        predictingInferenceTimeProcess = predictingInferenceTimeProcessBuilder.start();
+        ;
         pythonInput = new BufferedWriter(new OutputStreamWriter(predictingInferenceTimeProcess.getOutputStream()));
         pythonOutput = new BufferedReader(new InputStreamReader(predictingInferenceTimeProcess.getInputStream()));
-        
+
         // 启动 Python 预测推理时间进程
         startPredictingInferenceTimeService();
+
+        // 初始化 JSON 处理器
+        objectMapper = new ObjectMapper();
     }
 
     @Override
@@ -93,18 +100,18 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction <Infer
         requestState.add(value);
 
         List<InferenceRequest> currentRequestBatch = new ArrayList<>();
-        for (InferenceRequest req : requestState.get()){
+        for (InferenceRequest req : requestState.get()) {
             currentRequestBatch.add(req);
         }
 
         // 如果攒够了 batchsize 个请求，进行批处理
-        if (currentRequestBatch.size() >= predictingBatchsize){
+        if (currentRequestBatch.size() >= predictingBatchsize) {
             logger.info("节点{}开始第{}次批处理", nodeIP, batchCounter++);
             processBatch(currentRequestBatch, out);
         }
     }
 
-    public void startPredictingInferenceTimeService() throws IOException, InterruptedException{
+    public void startPredictingInferenceTimeService() throws IOException, InterruptedException {
         // 等待 Python 进程启动完成
         boolean processReady = false;
         long startTime = System.currentTimeMillis();
@@ -133,32 +140,75 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction <Infer
     /*
      * 批量对请求进行推理时间预测
      */
-    private void processBatch(List<InferenceRequest> requestBatch, Collector<InferenceRequest> out) throws JsonProcessingException{
+    private void processBatch(List<InferenceRequest> requestBatch, Collector<InferenceRequest> out)
+            throws IOException {
         List<RequestData> batchReqData = new ArrayList<>();
         for (InferenceRequest req : requestBatch) {
             RequestData reqData = new RequestData(req.getRequestId(), req.getUserId(), req.getUserMessage());
             batchReqData.add(reqData);
         }
 
+        // 将请求写到 Python 进程的标准输入
         String batchReqString = objectMapper.writeValueAsString(batchReqData);
+        pythonInput.write(batchReqString + "\n");
         pythonInput.flush();
 
+        // 从 Python 进程的标准输出读取推理响应
+        String batchPredictedRequestString = pythonOutput.readLine();
+        if (batchPredictedRequestString == null) {
+            throw new RuntimeException("节点 " + nodeIP + " 无响应");
+        }
+
+        List<RequestData> batchPredictedRequestData = objectMapper.readValue(batchPredictedRequestString,
+                new TypeReference<List<RequestData>>() {
+                });
+
+        // 提取响应信息，构造完整推理响应
+        List<InferenceRequest> batchPredictedRequest = new ArrayList<>();
+        for (RequestData predictedRequestData : batchPredictedRequestData) {
+            InferenceRequest req = new InferenceRequest();
+
+        }
+
     }
-    
+
     private class RequestData {
         String requestId;
         String userId;
         String userMessage;
 
-        public RequestData(){};
+        public RequestData() {
+        };
 
-        public RequestData(String requestId, String userId, String userMessage){
+        public RequestData(String requestId, String userId, String userMessage) {
             this.requestId = requestId;
             this.userId = userId;
             this.userMessage = userMessage;
         }
-        
+
+        public String getRequestId() {
+            return requestId;
+        }
+
+        public void setRequestId(String requestId) {
+            this.requestId = requestId;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+
+        public String getUserMessage() {
+            return userMessage;
+        }
+
+        public void setUserMessage(String userMessage) {
+            this.userMessage = userMessage;
+        }
     }
 
-    
 }
