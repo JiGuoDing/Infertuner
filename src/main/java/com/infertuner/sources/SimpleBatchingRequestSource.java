@@ -1,4 +1,4 @@
-package com.infertuner.source;
+package com.infertuner.sources;
 
 import com.infertuner.models.InferenceRequest;
 import org.apache.flink.streaming.api.functions.source.RichSourceFunction;
@@ -83,7 +83,7 @@ public class SimpleBatchingRequestSource extends RichSourceFunction<InferenceReq
         request.requestId = String.format("req_%03d", index);
         request.userId = "user_" + (index % 10);
         request.userMessage = generateMessage(index);
-        request.maxTokens = 50;
+        request.maxNewTokens = 50;
         request.batchSize = batchSize;  // 设置批大小
         request.createTimestamp = System.currentTimeMillis();
         return request;

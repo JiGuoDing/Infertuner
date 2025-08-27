@@ -226,7 +226,7 @@ public class ProcessFunctionBatchProcessor extends ProcessFunction<InferenceRequ
         for (InferenceRequest req : batch) {
             SingleRequestData singleReq = new SingleRequestData();
             singleReq.user_message = req.userMessage;
-            singleReq.max_tokens = req.maxTokens;
+            singleReq.max_tokens = req.maxNewTokens;
             singleReq.request_id = req.requestId;
             batchRequest.requests.add(singleReq);
         }
@@ -284,7 +284,7 @@ public class ProcessFunctionBatchProcessor extends ProcessFunction<InferenceRequ
             response.aiResponse = singleResp.response;
             response.inferenceTimeMs = avgProcessTimePerRequest;
             response.success = singleResp.success;
-            response.modelName = String.format("Node-%s", nodeIP);
+            response.responseDescription = String.format("Node-%s", nodeIP);
             response.fromCache = false;
             response.batchSize = batchSize;
             response.timestamp = batchEndTime;

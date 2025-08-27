@@ -4,7 +4,6 @@ import com.infertuner.models.InferenceResponse;
 import org.apache.flink.streaming.api.functions.sink.SinkFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.Node;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -29,7 +28,7 @@ public class GPUMonitorSink implements SinkFunction<InferenceResponse> {
     public void invoke(InferenceResponse response, Context context) throws Exception {
         int count = totalCount.incrementAndGet();
         
-        String NodeIP = extractNodeIP(response.modelName);
+        String NodeIP = extractNodeIP(response.responseDescription);
         
         if (response.success) {
             successCount.incrementAndGet();

@@ -86,7 +86,6 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
     private final List<Long> requestTimestamps = new ArrayList<>();
     private double historicalAverageRate = 0.0;
     private int requestsSinceLastAdjustment = 0;
-    private long lastAdjustmentTime = System.currentTimeMillis();
 
     @Override
     public void open(Configuration parameters) throws Exception {
@@ -155,7 +154,7 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
                 adjustCacheSize(newSize);
             }
             requestsSinceLastAdjustment = 0;
-            lastAdjustmentTime = System.currentTimeMillis();
+            System.currentTimeMillis();
         }
 
         // === 4. 使用二级缓存管理器查找缓存 ===
@@ -168,7 +167,7 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
             hitCount++;
             response = performInference(request, false);
             response.fromCache = true;
-            response.modelName = response.modelName + "-Hit";
+            response.responseDescription = response.responseDescription + "-Hit";
 
             logger.info("[{}] 命中: {}ms (策略={}, 缓存大小={})",
                     request.requestId, response.inferenceTimeMs,
@@ -178,7 +177,7 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
             // 🔴 缓存未命中：推理+远端延迟，然后模拟创建新KV值并存如缓存
             response = performInference(request, true);
             response.fromCache = false;
-            response.modelName = response.modelName + "-Miss";
+            response.responseDescription = response.responseDescription + "-Miss";
 
             // 存储新KV数据到二级缓存
             byte[] kvData = generateKVData(request);
@@ -373,7 +372,7 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
         // 调用Python推理服务
         Map<String, Object> req = new HashMap<>();
         req.put("user_message", request.userMessage);
-        req.put("max_tokens", request.maxTokens);
+        req.put("max_tokens", request.maxNewTokens);
         req.put("request_id", request.requestId);
         
         String requestJson = objectMapper.writeValueAsString(req);
@@ -390,7 +389,7 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
         response.userMessage = request.userMessage;
         response.success = responseNode.get("success").asBoolean();
         response.aiResponse = responseNode.get("response").asText();
-        response.modelName = responseNode.get("model_name").asText();
+        response.responseDescription = responseNode.get("model_name").asText();
         
         // 总延迟 = 远端延迟 + 推理时间
         double inferenceTime = responseNode.get("inference_time_ms").asDouble();

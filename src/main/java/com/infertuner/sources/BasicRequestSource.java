@@ -5,7 +5,6 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -13,6 +12,7 @@ import java.util.Random;
  * 精简版请求数据源
  */
 public class BasicRequestSource implements SourceFunction<InferenceRequest> {
+    
     private static final Logger logger = LoggerFactory.getLogger(BasicRequestSource.class);
     private volatile boolean isRunning = true;
     private final Random random = new Random();

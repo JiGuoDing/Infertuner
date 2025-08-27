@@ -25,7 +25,7 @@ public enum LLMModel {
         return modelPath;
     }
 
-    public LLMModel fromModelName(String name) {
+    public static LLMModel fromModelName(String name) {
         for (LLMModel model : LLMModel.values()) {
             if (model.getModelName().equalsIgnoreCase(name)) {
                 return model;

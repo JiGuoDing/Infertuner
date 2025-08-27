@@ -3,7 +3,6 @@ package com.infertuner.jobs;
 import com.infertuner.models.InferenceRequest;
 import com.infertuner.models.InferenceResponse;
 import com.infertuner.processors.GPUInferenceProcessor;
-import com.infertuner.sinks.GPUMonitorSink;
 import com.infertuner.sinks.UnifiedPerformanceSink;
 import com.infertuner.sources.BasicRequestSource;
 import org.apache.flink.streaming.api.datastream.DataStream;

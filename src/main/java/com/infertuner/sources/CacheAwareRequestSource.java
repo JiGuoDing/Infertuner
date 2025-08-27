@@ -5,6 +5,7 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -30,6 +31,8 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
         "What makes a memorable melody in reggae music? List 3-5 key points.",
         "Suggest a day-by-day plan for Toronto with 3-4 activities per day and dining options. Focus on the most important aspects."
     };
+    // 模型池
+    private final List<String> modelScope = List.of("Falcon3-7B-Instruct", "llama-2-13B", "Qwen3-30B-A3B-Instruct");
     
     public CacheAwareRequestSource() {
         this.maxRequests = 100;
@@ -55,14 +58,33 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
             // 根据负载选择用户
             String userId = selectUserForLoad(config, i);
             
-            // 生成请求
+            // 生成请求ID
             String requestId = String.format("req_%04d", i);
             String question = questions[random.nextInt(questions.length)];
-            // 最大生成 token 数 320-640 之间随机
-            int maxTokens = 320 + random.nextInt(320);
             int batchSize = 1;
+
+            // 从三个模型中随机挑选一个
+            String llmModelName = modelScope.get(random.nextInt(modelScope.size()));
+            // 根据模型确认最大生成 token 数
+            int maxNewTokens = -1;
+            switch (llmModelName) {
+                case "Falcon3-7B-Instruct":
+                    maxNewTokens = 640;
+                    break;
+                case "llama-2-13B":
+                    maxNewTokens = 960;
+                    break;
+                case "Qwen3-30B-A3B-Instruct":
+                    maxNewTokens = 1280;
+                    break;
+                default:
+                    logger.info("未知的模型，设置max_new_tokens为默认值640");
+                    maxNewTokens = 640;
+                    break;
+            }
             
-            InferenceRequest request = new InferenceRequest(requestId, userId, question, maxTokens, batchSize);
+            // 创建请求
+            InferenceRequest request = new InferenceRequest(requestId, userId, question, maxNewTokens, batchSize, llmModelName);
             
             // 发送请求
             synchronized (ctx.getCheckpointLock()) {
@@ -144,13 +166,15 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
             if (config.activeUsers <= 5) {
                 // 集中访问：80%的请求访问来自前60%的用户
                 if (random.nextDouble() < 0.8) {
+                    // 以 80% 的概率从前 60% 用户中随机选择一个用户
                     double top60PercentCount = Math.ceil(config.activeUsers * 3.0 / 5.0);
                     userIndex = random.nextInt((int) top60PercentCount) + 1;
                 } else {
+                    // 以 20% 的概率从所有用户中随机选择一个用户
                     userIndex = random.nextInt(config.activeUsers) + 1;
                 }
             } else {
-                // 分散访问：相对均匀分布
+                // 分散访问：相对均匀分布(随机访问)
                 userIndex = random.nextInt(config.activeUsers) + 1;
             }
         }

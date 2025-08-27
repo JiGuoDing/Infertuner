@@ -5,7 +5,6 @@ import com.infertuner.models.InferenceRequest;
 import com.infertuner.models.InferenceResponse;
 import org.apache.flink.api.common.functions.RichMapFunction;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.runtime.executiongraph.Execution;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -203,7 +202,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
             for (InferenceRequest request : requests) {
                 RequestData requestData = new RequestData(
                     request.userMessage,
-                    request.maxTokens,
+                    request.maxNewTokens,
                     request.requestId
                 );
                 requestDataList.add(requestData);
@@ -224,7 +223,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
                 responses.get(i).success = responseDataList.get(i).success;
                 responses.get(i).aiResponse = responseDataList.get(i).response;
                 responses.get(i).inferenceTimeMs = responseDataList.get(i).inference_time_ms;
-                responses.get(i).modelName = responseDataList.get(i).model_name + String.format(" (Node-%s,Batch-%d)", nodeIP, actualBatchSize);
+                responses.get(i).responseDescription = responseDataList.get(i).model_name + String.format(" (Node-%s,Batch-%d)", nodeIP, actualBatchSize);
                 responses.get(i).fromCache = false;
             }
 
@@ -235,7 +234,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
                 response.success = false;
                 response.aiResponse = "批次推理失败: " + e.getMessage();
                 response.inferenceTimeMs = 0;
-                response.modelName = "Error-Node-" + nodeIP;
+                response.responseDescription = "Error-Node-" + nodeIP;
             }
         }
 
@@ -256,7 +255,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
         try {
             RequestData requestData = new RequestData(
                 request.userMessage,
-                request.maxTokens,
+                request.maxNewTokens,
                 request.requestId
             );
             
@@ -275,7 +274,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
             response.success = responseData.success;
             response.aiResponse = responseData.response;
             response.inferenceTimeMs = responseData.inference_time_ms;
-            response.modelName = responseData.model_name + String.format(" (GPU-%d,Batch-%d)", gpuId, actualBatchSize);
+            response.responseDescription = responseData.model_name + String.format(" (GPU-%d,Batch-%d)", gpuId, actualBatchSize);
             response.fromCache = false;
             
         } catch (Exception e) {
@@ -283,7 +282,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
             response.success = false;
             response.aiResponse = "推理失败: " + e.getMessage();
             response.inferenceTimeMs = 0;
-            response.modelName = "Error-GPU-" + gpuId;
+            response.responseDescription = "Error-GPU-" + gpuId;
         }
         
         return response;

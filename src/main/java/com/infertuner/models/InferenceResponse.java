@@ -9,7 +9,8 @@ public class InferenceResponse {
     public String userMessage;
     public String aiResponse;
     public double inferenceTimeMs;
-    public String modelName;
+    // 对该请求的响应描述（如处理节点、错误信息等）
+    public String responseDescription;
     public boolean success;
     public boolean fromCache;  // 是否来自缓存
     public int batchSize;
@@ -56,12 +57,12 @@ public class InferenceResponse {
         this.aiResponse = aiResponse;
     }
 
-    public String getModelName() {
-        return modelName;
+    public String getResponseDescription() {
+        return responseDescription;
     }
 
-    public void setModelName(String modelName) {
-        this.modelName = modelName;
+    public void setResponseDescription(String responseDescription) {
+        this.responseDescription = responseDescription;
     }
 
     public boolean isSuccess() {

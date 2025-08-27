@@ -115,7 +115,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
             // 构造发送给 Python 服务的请求数据对象，包含推理请求的必要信息
             RequestData requestData = new RequestData(
                 request.userMessage,
-                request.maxTokens,
+                request.maxNewTokens,
                 request.requestId,
                 request.batchSize  // 传递批大小给Python服务
             );
@@ -141,7 +141,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
             response.aiResponse = responseData.response;
             // 记录推理耗时
             response.inferenceTimeMs = responseData.inference_time_ms;
-            response.modelName = responseData.model_name + String.format(" (NodeIP-%s,Batch-%d)", nodeIP, request.batchSize);
+            response.responseDescription = responseData.model_name + String.format(" (NodeIP-%s,Batch-%d)", nodeIP, request.batchSize);
             response.fromCache = false;
 
             // 设置批处理相关信息
@@ -158,7 +158,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
             response.success = false;
             response.aiResponse = "节点 " + nodeIP + " 处理失败: " + e.getMessage();
             response.inferenceTimeMs = System.currentTimeMillis() - startTime;
-            response.modelName = "Error-Node-" + nodeIP;
+            response.responseDescription = "Error-Node-" + nodeIP;
         }
         return response;
     }

@@ -181,7 +181,7 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
         }
 
         // 统计节点分布
-        String nodeIP = response.modelName != null ? response.modelName : "Unknown-Node";
+        String nodeIP = response.responseDescription != null ? response.responseDescription : "Unknown-Node";
         nodeRequestsCount.computeIfAbsent(nodeIP, k -> new AtomicInteger(0)).incrementAndGet();
 
         // 统计批大小分布

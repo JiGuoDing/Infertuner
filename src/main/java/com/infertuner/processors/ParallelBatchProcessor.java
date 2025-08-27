@@ -173,7 +173,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             SingleRequestData singleReq = new SingleRequestData();
             singleReq.user_message = req.getUserMessage();
             singleReq.userId = req.getUserId();
-            singleReq.max_tokens = req.getMaxTokens();
+            singleReq.max_tokens = req.getMaxNewTokens();
             singleReq.request_id = req.getRequestId();
             batchRequest.requests.add(singleReq);
         }
@@ -220,7 +220,7 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             response.aiResponse = singleResp.response;
             response.inferenceTimeMs = inferenceTime;
             response.success = singleResp.success;
-            response.modelName = String.format("node-%s", nodeIP);
+            response.responseDescription = String.format("node-%s", nodeIP);
             response.fromCache = false;
             response.batchSize = batchSize;
             response.timestamp = inferenceEndTime;
