@@ -130,9 +130,9 @@ class PredictInferenceTimeService():
 
         logger.info(f"正在从 {proxy_model_path} 加载代理模型到设备 {device}")
         self.proxy_tokenizer = AutoTokenizer.from_pretrained(pretrained_model_name_or_path=proxy_model_path,
-                                                             use_fast=True)
+                                                            use_fast=True)
         self.proxy_model = AutoModel.from_pretrained(pretrained_model_name_or_path=proxy_model_path,
-                                                     torch_dtype=torch.bfloat16)
+                                                    torch_dtype=torch.bfloat16)
         self.proxy_model.to(device).eval()
 
         logger.info(f"代理模型加载成功")
@@ -146,7 +146,7 @@ class PredictInferenceTimeService():
         :return:
         """
 
-        logger.info(f"正在从 {predictor_dir_path} 加载预测器到设备 {device}")
+        logger.info(f"正在从 {predictor_dir_path} 加载 token数 预测器到设备 {device}")
 
         self.token_num_predictors["Falcon3-7B-Instruct"] = TokenPredictor(2 * pca_dim + 5)
         self.token_num_predictors["llama-2-13B"] = TokenPredictor(2 * pca_dim + 5)
@@ -164,7 +164,7 @@ class PredictInferenceTimeService():
         self.token_num_predictors["llama-2-13B"].eval().to(device=device)
         self.token_num_predictors["Qwen3-30B-A3B-Instruct"].eval().to(device=device)
 
-        logger.info("预测器加载成功")
+        logger.info("token 数预测器加载成功")
 
     def setup_inference_time_predictor(self, predictor_dir_path: str = "/mnt/tidal-alsh01/usr/suqian/models/predict_time_models"):
         """
@@ -273,20 +273,20 @@ class PredictInferenceTimeService():
         prompt_token_nums = inputs["length"].tolist()
 
         with torch.no_grad():
-            outputs = self.proxy_model(**inputs);
+            outputs = self.proxy_model(**inputs)
             hidden_states = outputs.last_hidden_state
 
             # [CLS] 对应的隐藏层状态
             cls_embeddings = hidden_states[:, 0, :]
 
-            # 处 [CLS] 外 token 的隐藏层状态的平均池化向量，包含padding结果
+            # 除 [CLS] 外 token 的隐藏层状态的平均池化向量，包含padding结果
             excluded_cls_embeddings = hidden_states[:, 1:, :]
             mean_pooling_excluded_cls_embeddings = excluded_cls_embeddings.mean(dim=1)
-        
+
         for i, request in enumerate(request_list):
             # 2. 组成完整的输入特征
             llmModelName = request.get("llmModelName", None)
-            
+
             cls_embd = cls_embeddings[i].cpu().numpy()
             mean_pooling_embd = mean_pooling_excluded_cls_embeddings[i].cpu().numpy()
 
@@ -301,7 +301,7 @@ class PredictInferenceTimeService():
             repetition_penalty = self.repetition_penalty
 
             feature_vec = pd.DataFrame([list(cls_embd) + list(mean_pooling_embd) + [prompt_token_nums[i], temperature, top_p, top_k, repetition_penalty]])
-            
+
             # 3. 将特征输入模型，获取每个请求对应的预测的生成 token 数
             token_num_predictor = self.token_num_predictors.get(llmModelName)
             try:

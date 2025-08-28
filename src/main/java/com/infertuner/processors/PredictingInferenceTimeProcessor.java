@@ -70,7 +70,7 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
             if (globalParams.containsKey("batchsize")) {
                 predictingBatchsize = Integer.parseInt(globalParams.get("batchsize"));
             }
-        } catch (Exception exception) {
+        } catch (Exception ignored) {
         }
 
         // 创建 Python 预测推理时间进程
@@ -94,19 +94,26 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
     }
 
     @Override
-    public void flatMap(InferenceRequest value, Collector<InferenceRequest> out) throws Exception {
-        // TODO [攒批]推理
-        requestState.add(value);
+    public void flatMap(InferenceRequest request, Collector<InferenceRequest> out) throws Exception {
+        request.setAcceptedTimestamp(System.currentTimeMillis());
+        requestState.add(request);
 
         List<InferenceRequest> currentRequestBatch = new ArrayList<>();
         for (InferenceRequest req : requestState.get()) {
             currentRequestBatch.add(req);
         }
 
-        // 如果攒够了 batchsize 个请求，进行批处理
+        // 如果攒够了 batchsize 个请求，进行批处理预测
         if (currentRequestBatch.size() >= predictingBatchsize) {
-            logger.info("节点{}开始第{}次批处理", nodeIP, batchCounter++);
+            logger.info("节点 {} 开始第 {} 次批处理", nodeIP, batchCounter++);
+            for (InferenceRequest req : currentRequestBatch) {
+                req.setProcessingTimestamp(System.currentTimeMillis());
+            }
+            long batchStartTime = System.currentTimeMillis();
             processBatch(currentRequestBatch, out);
+            long batchEndTime = System.currentTimeMillis();
+            logger.info("节点 {} 第 {} 次批处理完成，批处理大小 {}, 批处理耗时 {}ms", nodeIP, batchCounter - 1,
+                    currentRequestBatch.size(), (batchEndTime - batchStartTime));
         }
     }
 
@@ -159,7 +166,7 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
         }
 
         List<RequestData> batchPredictedRequestData = objectMapper.readValue(batchPredictedRequestString,
-                new TypeReference<List<RequestData>>() {
+                new TypeReference<>() {
                 });
 
         // 提取响应信息，构造完整的处理后的推理请求

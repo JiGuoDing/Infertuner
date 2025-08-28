@@ -381,7 +381,30 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
         pythonInput.flush();
 
         String responseJson = pythonOutput.readLine();
-        JsonNode responseNode = objectMapper.readTree(responseJson);
+        if (responseJson == null) {
+            logger.error("从 Python 进程读取响应失败，可能已意外终止。请求ID: {}", request.requestId);
+            // 抛出异常或返回一个表示失败的特定响应
+            throw new IOException("Python inference process returned no output.");
+        }
+
+        JsonNode rootNode = objectMapper.readTree(responseJson);
+        boolean success = rootNode.path("success").asBoolean(false);
+
+        if (!success) {
+            String errorMsg = rootNode.path("error").asText("Unknown error from Python script.");
+            logger.error("Python 推理失败。请求ID: {}, 错误: {}", request.requestId, errorMsg);
+            throw new IOException("Inference failed in Python: " + errorMsg);
+        }
+
+        // Python返回的是一个批次结果，即使我们只发送了一个请求
+        JsonNode responsesArray = rootNode.path("responses");
+        if (responsesArray.isEmpty() || !responsesArray.isArray()) {
+            logger.error("Python 响应格式错误：'responses' 数组为空或不存在。请求ID: {}", request.requestId);
+            throw new IOException("Invalid response format from Python: 'responses' array is missing or empty.");
+        }
+
+        // 获取批次中的第一个结果
+        JsonNode responseNode = responsesArray.get(0);
 
         // 构建响应
         InferenceResponse response = new InferenceResponse();

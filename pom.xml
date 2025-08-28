@@ -5,9 +5,14 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+<!--    <groupId>com.infertuner</groupId>-->
+<!--    <artifactId>infertuner-JointOptimization</artifactId>-->
+<!--    <version>1.0.2</version>-->
+<!--    <packaging>jar</packaging>-->
+
     <groupId>com.infertuner</groupId>
-    <artifactId>infertuner-JointOptimization</artifactId>
-    <version>1.0.2</version>
+    <artifactId>infertuner-CacheExperimentJob</artifactId>
+    <version>1.0.0</version>
     <packaging>jar</packaging>
 
     <name>InferTuner Simple</name>
@@ -22,8 +27,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 <!--        <main.class>com.infertuner.jobs.GPUScalingJob</main.class>-->
 <!--        <main.class>com.infertuner.jobs.CountBasedBatchAnalysisJob</main.class>-->
-       <main.class>com.infertuner.jobs.JointOptimizationJob</main.class>
-        <!-- <main.class>com.infertuner.jobs.CacheExperimentJob</main.class> -->
+<!--       <main.class>com.infertuner.jobs.JointOptimizationJob</main.class>-->
+         <main.class>com.infertuner.jobs.CacheExperimentJob</main.class>
     </properties>
 
     <dependencies>

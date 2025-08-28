@@ -32,8 +32,9 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
         "Suggest a day-by-day plan for Toronto with 3-4 activities per day and dining options. Focus on the most important aspects."
     };
     // 模型池
-    private final List<String> modelScope = List.of("Falcon3-7B-Instruct", "llama-2-13B", "Qwen3-30B-A3B-Instruct");
-    
+    // private final List<String> modelScope = List.of("Falcon3-7B-Instruct", "llama-2-13B", "Qwen3-30B-A3B-Instruct");
+    private final List<String> modelScope = List.of("Falcon3-7B-Instruct");
+
     public CacheAwareRequestSource() {
         this.maxRequests = 100;
         this.baseInterval = 1000;
@@ -66,7 +67,7 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
             // 从三个模型中随机挑选一个
             String llmModelName = modelScope.get(random.nextInt(modelScope.size()));
             // 根据模型确认最大生成 token 数
-            int maxNewTokens = -1;
+            int maxNewTokens;
             switch (llmModelName) {
                 case "Falcon3-7B-Instruct":
                     maxNewTokens = 640;
