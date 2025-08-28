@@ -21,7 +21,6 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infertuner.models.InferenceRequest;
-import com.infertuner.models.InferenceResponse;
 
 /**
  * 用于接收请求并根据请求内容预测推理时间的算子
@@ -144,7 +143,7 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
             throws IOException {
         List<RequestData> batchReqData = new ArrayList<>();
         for (InferenceRequest req : requestBatch) {
-            RequestData reqData = new RequestData(req.getRequestId(), req.getUserId(), req.getUserMessage());
+            RequestData reqData = new RequestData(req.getRequestId(), req.getUserId(), req.getUserMessage(), req.getLlmModel().getModelName());
             batchReqData.add(reqData);
         }
 
@@ -153,7 +152,7 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
         pythonInput.write(batchReqString + "\n");
         pythonInput.flush();
 
-        // 从 Python 进程的标准输出读取推理响应
+        // 从 Python 进程的标准输出读取带有预测生成token数及推理时间的推理请求
         String batchPredictedRequestString = pythonOutput.readLine();
         if (batchPredictedRequestString == null) {
             throw new RuntimeException("节点 " + nodeIP + " 无响应");
@@ -163,11 +162,13 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
                 new TypeReference<List<RequestData>>() {
                 });
 
-        // 提取响应信息，构造完整推理响应
-        List<InferenceRequest> batchPredictedRequest = new ArrayList<>();
-        for (RequestData predictedRequestData : batchPredictedRequestData) {
-            InferenceRequest req = new InferenceRequest();
+        // 提取响应信息，构造完整的处理后的推理请求
+        for (int i = 0; i < batchPredictedRequestData.size(); i++) {
+            // 在原请求基础上添加预测信息
+            requestBatch.get(i).setPredictedGeneratedTokenNum(batchPredictedRequestData.get(i).getPredictedGeneratedTokenNum());
+            requestBatch.get(i).setPredictedInferenceTime(batchPredictedRequestData.get(i).getPredictedInferenceTime());
 
+            out.collect(requestBatch.get(i));
         }
 
     }
@@ -176,14 +177,40 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
         String requestId;
         String userId;
         String userMessage;
+        String llmModelName;
+        long predictedGeneratedTokenNum;
+        double predictedInferenceTime;
+        boolean success;
+        
+        RequestData() {};
 
-        public RequestData() {
-        };
-
-        public RequestData(String requestId, String userId, String userMessage) {
+        RequestData(String requestId, String userId, String userMessage, String llmModelName) {
             this.requestId = requestId;
             this.userId = userId;
             this.userMessage = userMessage;
+            this.llmModelName = llmModelName;
+            this.predictedGeneratedTokenNum = 0;
+            this.predictedInferenceTime = 0.0;
+            this.success = false;
+        }
+
+
+        RequestData(String requestId, String userId, String userMessage, String llmModelName, long predictedGeneratedTokenNum, double predictedInferenceTime, boolean success) {
+            this.requestId = requestId;
+            this.userId = userId;
+            this.userMessage = userMessage;
+            this.llmModelName = llmModelName;
+            this.predictedGeneratedTokenNum = predictedGeneratedTokenNum;
+            this.predictedInferenceTime = predictedInferenceTime;
+            this.success = success;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
         }
 
         public String getRequestId() {
@@ -208,6 +235,30 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
 
         public void setUserMessage(String userMessage) {
             this.userMessage = userMessage;
+        }
+
+        public long getPredictedGeneratedTokenNum() {
+            return predictedGeneratedTokenNum;
+        }
+
+        public void setPredictedGeneratedTokenNum(long predictedGeneratedTokenNum) {
+            this.predictedGeneratedTokenNum = predictedGeneratedTokenNum;
+        }
+
+        public double getPredictedInferenceTime() {
+            return predictedInferenceTime;
+        }
+
+        public void setPredictedInferenceTime(double predictedInferenceTime) {
+            this.predictedInferenceTime = predictedInferenceTime;
+        }
+
+        public String getLlmModelName() {
+            return llmModelName;
+        }
+
+        public void setLlmModelName(String llmModelName) {
+            this.llmModelName = llmModelName;
         }
     }
 

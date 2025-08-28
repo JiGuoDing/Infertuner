@@ -1,5 +1,7 @@
 package com.infertuner.processors;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.net.UnknownHostException;
 
 import org.apache.flink.configuration.Configuration;
@@ -14,7 +16,10 @@ import com.infertuner.models.InferenceResponse;
 public class KeyedInferenceProcessor extends KeyedProcessFunction<String, InferenceRequest, InferenceResponse> {
     private static final Logger logger = LoggerFactory.getLogger(KeyedInferenceProcessor.class);
 
-    String nodeIP;
+    private transient String nodeIP;
+    private transient Process inferenceProcess;
+    private transient BufferedWriter pythonInput;
+    private transient BufferedReader pythonOutput;
 
     @Override
     public void open(Configuration parameters) throws Exception {

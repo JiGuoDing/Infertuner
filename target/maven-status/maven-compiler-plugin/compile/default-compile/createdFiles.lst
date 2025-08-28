@@ -1,3 +1,5 @@
 com/infertuner/predictors/GeneratedTokenNumPredictor.class
 com/infertuner/predictors/InferenceTimePredictor.class
 com/infertuner/models/LLMModel.class
+com/infertuner/sources/CacheAwareRequestSource$1.class
+com/infertuner/processors/CacheEnabledInferenceProcessor$1.class

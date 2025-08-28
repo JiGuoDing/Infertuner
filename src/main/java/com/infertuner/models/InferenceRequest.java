@@ -8,6 +8,7 @@ public class InferenceRequest {
     public String userId;
     public String userMessage;
     public int maxNewTokens;
+
     public int batchSize;
     // 请求的创建时间戳
     public long createTimestamp;
@@ -19,6 +20,11 @@ public class InferenceRequest {
     public long completedTimestamp;
     // 请求对应的 LLM
     public LLMModel llmModel;
+
+    // 预测的请求对应的推理生成的 token 数
+    public long predictedGeneratedTokenNum;
+    // 预测的请求对应的推理时间
+    public double predictedInferenceTime;
     
     public InferenceRequest() {}
 
@@ -158,6 +164,22 @@ public class InferenceRequest {
 
     public void setLlmModel(String llmModelName) {
         this.llmModel = LLMModel.fromModelName(llmModelName);
+    }
+
+    public long getPredictedGeneratedTokenNum() {
+        return predictedGeneratedTokenNum;
+    }
+
+    public void setPredictedGeneratedTokenNum(long predictedGeneratedTokenNum) {
+        this.predictedGeneratedTokenNum = predictedGeneratedTokenNum;
+    }
+
+    public double getPredictedInferenceTime() {
+        return predictedInferenceTime;
+    }
+
+    public void setPredictedInferenceTime(double predictedInferenceTime) {
+        this.predictedInferenceTime = predictedInferenceTime;
     }
 
     public LLMModel getLlmModel() {

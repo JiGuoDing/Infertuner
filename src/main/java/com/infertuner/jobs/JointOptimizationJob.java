@@ -44,7 +44,7 @@ public class JointOptimizationJob {
 
         // 创建执行环境
         final StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        env.setParallelism(parallelism);
+        // env.setParallelism(parallelism);
 
         // 配置全局参数
         Configuration config = new Configuration();
@@ -68,16 +68,18 @@ public class JointOptimizationJob {
 
         DataStream<InferenceRequest> requests = env
                 .addSource(new BasicRequestSource(totalRequests, interval))
+                .setMaxParallelism(1)
                 .name("Joint Optimization Request Source");
 
         DataStream<InferenceResponse> responses = requests
                 .rebalance()
                 .process(new ParallelBatchProcessor())
+                .setMaxParallelism(parallelism)
                 .name("Parallel Batch Processor");
 
         String experimentId = String.format("p%db%d_%dreq", parallelism, batchSize, totalRequests);
         responses.addSink(new JointOptimizationSink(experimentId, parallelism, batchSize, interval))
-                .name("Joint Optimization Performance Sink").setParallelism(1);
+        .setParallelism(1).name("Joint Optimization Performance Sink");
 
         logger.info("🚀 p×b联合优化流水线构建完成");
         // logger.info("📊 核心特点:");
