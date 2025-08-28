@@ -86,6 +86,7 @@ public class CacheAwareRequestSource implements SourceFunction<InferenceRequest>
             
             // 创建请求
             InferenceRequest request = new InferenceRequest(requestId, userId, question, maxNewTokens, batchSize, llmModelName);
+            request.setCreateTimestamp(System.currentTimeMillis());
             
             // 发送请求
             synchronized (ctx.getCheckpointLock()) {

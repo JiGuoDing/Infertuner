@@ -150,10 +150,7 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
 
     @Override
     public void invoke(InferenceResponse response, Context context) {
-        long currentTime = System.currentTimeMillis();
-
-        int globalCount = globalTotalRequests.incrementAndGet();
-        int localCount = localRequests.incrementAndGet();
+        globalLastResponseSinkTime = System.currentTimeMillis();
 
         // 更新全局时间跟踪
         if (globalFirstRequestAcceptedTime == 0) {
@@ -163,35 +160,36 @@ public class JointOptimizationSink extends RichSinkFunction<InferenceResponse> {
                 }
             }
         }
-        globalLastResponseSinkTime = currentTime;
+
+        int globalCount = globalTotalRequests.incrementAndGet();
 
         // 更新全局统计
-        if (response.success) {
+        if (response.isSuccess()) {
             globalSuccessRequests.incrementAndGet();
-            globalTotalInferenceTime.addAndGet((long) response.inferenceTimeMs);
+            globalTotalInferenceTime.addAndGet((long) response.getInferenceTimeMs());
 
-            if (response.waitTimeMs > 0) {
-                globalTotalWaitTime.addAndGet(response.waitTimeMs);
+            if (response.getWaitTimeMs() > 0) {
+                globalTotalWaitTime.addAndGet(response.getWaitTimeMs());
             }
-            if (response.totalLatencyMs > 0) {
-                globalTotalLatency.addAndGet(response.totalLatencyMs);
+            if (response.getTotalLatencyMs() > 0) {
+                globalTotalLatency.addAndGet(response.getTotalLatencyMs());
             } else {
-                globalTotalLatency.addAndGet((long) response.inferenceTimeMs);
+                globalTotalLatency.addAndGet((long) response.getInferenceTimeMs());
             }
         }
 
         // 统计节点分布
-        String nodeIP = response.responseDescription != null ? response.responseDescription : "Unknown-Node";
+        String nodeIP = response.getNodeIP() != null ? response.getNodeIP() : "Unknown-Node";
         nodeRequestsCount.computeIfAbsent(nodeIP, k -> new AtomicInteger(0)).incrementAndGet();
 
         // 统计批大小分布
-        batchSizeDistribution.computeIfAbsent(response.batchSize, k -> new AtomicInteger(0)).incrementAndGet();
+        batchSizeDistribution.computeIfAbsent(response.getBatchSize(), k -> new AtomicInteger(0)).incrementAndGet();
 
         // 日志输出
-        if (localCount % 10 == 0) {
+        if (globalCount % 10 == 0) {
             logger.info("响应 #{}: {} | 节点: {} | 批大小: {} | 等待: {}ms | {}",
-                    globalCount, response.requestId, nodeIP, response.batchSize,
-                    response.waitTimeMs, response.success ? "✅" : "❌");
+                    globalCount, response.getRequestId(), nodeIP, response.getBatchSize(),
+                    response.getWaitTimeMs(), response.isSuccess() ? "✅" : "❌");
         }
 
         // 检查是否输出最终统计 - 修复：确保能正确触发统计输出

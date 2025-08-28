@@ -162,7 +162,7 @@ public class BatchProcessor extends RichMapFunction<InferenceRequest, InferenceR
             response.success = responseData.success;
             response.responseText = responseData.response;
             response.inferenceTimeMs = responseData.inference_time_ms;
-            response.responseDescription = responseData.model_name
+            response.nodeIP = responseData.model_name
                     + String.format(" (GPU-%d,Batch-%d)", gpuId, actualBatchSize);
             response.fromCache = false;
 
@@ -171,7 +171,7 @@ public class BatchProcessor extends RichMapFunction<InferenceRequest, InferenceR
             response.success = false;
             response.responseText = "推理失败: " + e.getMessage();
             response.inferenceTimeMs = 0;
-            response.responseDescription = "Error-GPU-" + gpuId;
+            response.nodeIP = "Error-GPU-" + gpuId;
         }
 
         return response;

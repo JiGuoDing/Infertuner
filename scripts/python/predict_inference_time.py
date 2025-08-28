@@ -247,25 +247,28 @@ class PredictInferenceTimeService():
             String requestId;
             String userId;
             String userMessage;
+            String llmModelName;
+            int batchsize;
             long predictedGeneratedTokenNum;
             double predictedInferenceTime;
+            boolean success;
         }
         """
         # 0. 对所有请求文本进行预处理，应用模板
         formatted_prompts = []
         for request in request_list:
             prompt = request.get("userMessage", None)
-            llmModelName = request.get("llmModelName", None)
+            llm_model_name = request.get("llmModelName", None)
             try:
                 messages = {"role: user", f"content: {prompt}"}
-                tokenizer = self.inference_tokenizers.get(llmModelName)
+                tokenizer = self.inference_tokenizers.get(llm_model_name)
                 if tokenizer is None:
-                    logger.error(f"未找到模型 {llmModelName} 对应的编码器")
+                    logger.error(f"未找到模型 {llm_model_name} 对应的编码器")
 
                 formatted_prompt = tokenizer.apply_chat_template(messages, tokenize=False)
                 formatted_prompts.append(formatted_prompt)
             except Exception as e:
-                logger.info(f"无法进行编码，错误:{e}")
+                raise ValueError(f"无法进行编码，错误:{e}")
 
         # 1. 使用代理模型获取请求文本 [CLS] 隐藏层状态和请求文本的平均池化向量
         inputs = self.proxy_tokenizer(formatted_prompts, return_tensors="pt", padding=True, truncation=True, return_length=True)
@@ -279,7 +282,7 @@ class PredictInferenceTimeService():
             # [CLS] 对应的隐藏层状态
             cls_embeddings = hidden_states[:, 0, :]
 
-            # 除 [CLS] 外 token 的隐藏层状态的平均池化向量，包含padding结果
+            # 除 [CLS] 外 token 的隐藏层状态的平均池化向量，包含 padding 结果
             excluded_cls_embeddings = hidden_states[:, 1:, :]
             mean_pooling_excluded_cls_embeddings = excluded_cls_embeddings.mean(dim=1)
 
@@ -387,7 +390,7 @@ class PredictInferenceTimeService():
 
 
 def main():
-    if len(sys.argv) < 2:
+    if len(sys.argv) < 3:
         logger.error("Usage: python predict_inference_time.py <node_ip>")
         sys.exit(1)
 

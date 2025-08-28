@@ -220,7 +220,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
                 responses.get(i).success = responseDataList.get(i).success;
                 responses.get(i).responseText = responseDataList.get(i).response;
                 responses.get(i).inferenceTimeMs = responseDataList.get(i).inference_time_ms;
-                responses.get(i).responseDescription = responseDataList.get(i).model_name
+                responses.get(i).nodeIP = responseDataList.get(i).model_name
                         + String.format(" (Node-%s,Batch-%d)", nodeIP, actualBatchSize);
                 responses.get(i).fromCache = false;
             }
@@ -231,7 +231,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
                 response.success = false;
                 response.responseText = "批次推理失败: " + e.getMessage();
                 response.inferenceTimeMs = 0;
-                response.responseDescription = "Error-Node-" + nodeIP;
+                response.nodeIP = "Error-Node-" + nodeIP;
             }
         }
 
@@ -270,7 +270,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
             response.success = responseData.success;
             response.responseText = responseData.response;
             response.inferenceTimeMs = responseData.inference_time_ms;
-            response.responseDescription = responseData.model_name
+            response.nodeIP = responseData.model_name
                     + String.format(" (GPU-%d,Batch-%d)", gpuId, actualBatchSize);
             response.fromCache = false;
 
@@ -279,7 +279,7 @@ public class RealBatchProcessor extends RichMapFunction<InferenceRequest, Infere
             response.success = false;
             response.responseText = "推理失败: " + e.getMessage();
             response.inferenceTimeMs = 0;
-            response.responseDescription = "Error-GPU-" + gpuId;
+            response.nodeIP = "Error-GPU-" + gpuId;
         }
 
         return response;

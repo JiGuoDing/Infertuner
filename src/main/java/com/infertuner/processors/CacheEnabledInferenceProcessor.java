@@ -168,7 +168,7 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
             hitCount++;
             response = performInference(request, false);
             response.fromCache = true;
-            response.responseDescription = response.responseDescription + "-Hit";
+            response.nodeIP = response.nodeIP + "-Hit";
 
             logger.info("[{}] 命中: {}ms (策略={}, 缓存大小={})",
                     request.requestId, response.inferenceTimeMs,
@@ -178,7 +178,7 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
             // 🔴 缓存未命中：推理+远端延迟，然后模拟创建新KV值并存如缓存
             response = performInference(request, true);
             response.fromCache = false;
-            response.responseDescription = response.responseDescription + "-Miss";
+            response.nodeIP = response.nodeIP + "-Miss";
 
             // 存储新KV数据到二级缓存
             byte[] kvData = generateKVData(request);
@@ -413,7 +413,7 @@ public class CacheEnabledInferenceProcessor extends RichMapFunction<InferenceReq
         response.userMessage = request.userMessage;
         response.success = responseNode.get("success").asBoolean();
         response.responseText = responseNode.get("response").asText();
-        response.responseDescription = responseNode.get("model_name").asText();
+        response.nodeIP = responseNode.get("model_name").asText();
 
         // 总延迟 = 远端延迟 + 推理时间
         double inferenceTime = responseNode.get("inference_time_ms").asDouble();

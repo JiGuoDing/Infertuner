@@ -140,7 +140,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
             response.responseText = responseData.response;
             // 记录推理耗时
             response.inferenceTimeMs = responseData.inference_time_ms;
-            response.responseDescription = responseData.model_name
+            response.nodeIP = responseData.model_name
                     + String.format(" (NodeIP-%s,Batch-%d)", nodeIP, request.batchSize);
             response.fromCache = false;
 
@@ -158,7 +158,7 @@ public class GPUInferenceProcessor extends RichMapFunction<InferenceRequest, Inf
             response.success = false;
             response.responseText = "节点 " + nodeIP + " 处理失败: " + e.getMessage();
             response.inferenceTimeMs = System.currentTimeMillis() - startTime;
-            response.responseDescription = "Error-Node-" + nodeIP;
+            response.nodeIP = "Error-Node-" + nodeIP;
         }
         return response;
     }

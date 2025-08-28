@@ -35,7 +35,7 @@ public class SimpleResultSink extends RichSinkFunction<InferenceResponse> {
         String timeStr = String.format("%.1f", response.inferenceTimeMs);
         String statusStr = response.success ? "成功" : "失败";
 
-        logger.info("状态: {} | 耗时: {}ms | 模型: {}", statusStr, timeStr, response.responseDescription);
+        logger.info("状态: {} | 耗时: {}ms | 模型: {}", statusStr, timeStr, response.nodeIP);
 
         // 统计
         if (response.success) {

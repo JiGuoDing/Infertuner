@@ -1,8 +1,11 @@
 package com.infertuner.processors;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.infertuner.models.InferenceRequest;
 import com.infertuner.models.InferenceResponse;
+import org.apache.flink.api.common.state.ListState;
+import org.apache.flink.api.common.state.ListStateDescriptor;
 import org.apache.flink.configuration.Configuration;
 import org.apache.flink.streaming.api.functions.ProcessFunction;
 import org.apache.flink.util.Collector;
@@ -13,7 +16,6 @@ import java.io.*;
 import java.net.UnknownHostException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * 批处理器 - 不使用Flink State，避免keyBy问题
@@ -24,7 +26,6 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     private static final Logger logger = LoggerFactory.getLogger(ParallelBatchProcessor.class);
 
     // GPU相关
-    private int gpuId;
     private String nodeIP;
     private int taskIndex;
     private int totalParallelism;
@@ -32,17 +33,12 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     private transient BufferedWriter processInput; // 标记为transient
     private transient BufferedReader processOutput; // 标记为transient
     private transient ObjectMapper objectMapper; // 标记为transient
+    private transient ListState<InferenceRequest> requestState; // Flink 托管状态，储存请求队列
 
     // 攒批配置
-    private int targetBatchSize = 4;
-
-    // 内存缓冲区- 在open()中初始化
-    private transient Queue<InferenceRequest> requestBuffer;
-    private transient Queue<Long> arrivalTimes;
-    private transient long currentBatchFirstRequestTime = 0;
+    private int inferenceBatchsize;
     private transient int batchCounter = 0;
 
-    // private static final String MODEL_NAME = "Qwen3-30B-A3B-Instruct";
     private static final String MODEL_NAME = "Falcon3-7B-Instruct";
     private static final String MODEL_PATH = "/mnt/tidal-alsh01/usr/suqian/models/".concat(MODEL_NAME);
     private static final String BATCH_SERVICE_SCRIPT = "/mnt/tidal-alsh01/usr/suqian/scripts/batch_inference_service_new.py";
@@ -51,14 +47,11 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
     public void open(Configuration parameters) throws Exception {
         super.open(parameters);
 
-        // 初始化transient字段
-        requestBuffer = new ConcurrentLinkedQueue<>();
-        arrivalTimes = new ConcurrentLinkedQueue<>();
-        objectMapper = new ObjectMapper();
+        // 初始化状态存储
+        ListStateDescriptor<InferenceRequest> descriptor = new ListStateDescriptor<>("processed-request-buffer", InferenceRequest.class);
+        requestState = getRuntimeContext().getListState(descriptor);
 
-        taskIndex = getRuntimeContext().getIndexOfThisSubtask();
-        totalParallelism = getRuntimeContext().getNumberOfParallelSubtasks();
-        gpuId = 0;
+        objectMapper = new ObjectMapper();
 
         // 获取的当前节点IP
         try {
@@ -68,35 +61,29 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
             nodeIP = "Unknown-hostIP";
         }
 
-        // 从全局参数获取配置
+        // 从全局参数获取 batchsize 参数
         try {
-            Map<String, String> globalParams = getRuntimeContext().getExecutionConfig()
-                    .getGlobalJobParameters().toMap();
-
-            if (globalParams.containsKey("batch.size")) {
-                targetBatchSize = Integer.parseInt(globalParams.get("batch.size"));
+            Map<String, String> globalParams = getRuntimeContext().getExecutionConfig().getGlobalJobParameters()
+                    .toMap();
+            if (globalParams.containsKey("batchsize")) {
+                inferenceBatchsize = Integer.parseInt(globalParams.get("batchsize"));
             }
-        } catch (Exception e) {
-            logger.warn("使用默认配置: batchSize={}", targetBatchSize);
+        } catch (Exception ignored) {
         }
-
-        logger.info("🎯 节点 {} 简化并行攒批处理器启动: 并行度={}, 批大小={}",
-                nodeIP, totalParallelism, targetBatchSize);
-        logger.info("📋 节点 {} 负责处理: taskIndex={}, 使用内存缓冲区", nodeIP, taskIndex);
 
         objectMapper.configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         // 启动内联推理服务进程
         startGPUService();
 
-        logger.info("✅ 节点 {} 简化并行攒批服务启动完成", nodeIP);
+        logger.info("✅ 节点 {} 攒批推理服务启动完成", nodeIP);
     }
 
     private void startGPUService() throws Exception {
         logger.info("启动节点 {} 推理服务...", nodeIP);
 
         ProcessBuilder pb = new ProcessBuilder(
-                "/opt/conda/envs/vllm-env/bin/python", BATCH_SERVICE_SCRIPT, nodeIP, MODEL_PATH, String.valueOf(gpuId));
+                "/opt/conda/envs/vllm-env/bin/python", BATCH_SERVICE_SCRIPT, nodeIP, MODEL_PATH);
         pb.redirectErrorStream(false);
         pb.environment().put("PYTHONUNBUFFERED", "1");
         inferenceProcess = pb.start();
@@ -106,13 +93,13 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
 
         // 等待服务启动
         logger.info("等待节点 {} 服务启动...", nodeIP);
-        Thread.sleep(3000);
+        Thread.sleep(5000);
 
         if (!inferenceProcess.isAlive()) {
             throw new RuntimeException("节点 " + nodeIP + " 推理服务启动失败");
         }
 
-        logger.info("✅ 节点 {} 推理服务启动成功", nodeIP);
+        logger.info("✅ 节点 {} Python 推理进程启动成功", nodeIP);
     }
 
     @Override
@@ -121,128 +108,88 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         // 更新请求的被接受时间
         request.setAcceptedTimestamp(System.currentTimeMillis());
 
-        // 将请求加入缓冲区
-        requestBuffer.offer(request);
-        arrivalTimes.offer(request.getAcceptedTimestamp());
-
-        int currentSize = requestBuffer.size();
-
-        // 记录批次中第一个请求时间
-        if (currentSize == 1) {
-            currentBatchFirstRequestTime = request.getAcceptedTimestamp();
-            logger.info("节点 {} 开始第 {} 次攒批", nodeIP, batchCounter);
-        } else {
-            logger.info("节点 {} 接收到请求，当前请求数: {} / {}", nodeIP, currentSize, targetBatchSize);
+        List<InferenceRequest> currentRequestBatch = new ArrayList<>();
+        for (InferenceRequest req : requestState.get()) {
+            currentRequestBatch.add(req);
         }
 
-        if (currentSize >= targetBatchSize) {
-            logger.info("🚀 节点 {} 攒够 {} 个请求，第 {} 个批次开始处理", nodeIP, targetBatchSize, batchCounter);
-            processBatch(out);
+        logger.info("节点 {} 批次 {} 攒批进度 {}/{}", nodeIP, batchCounter, currentRequestBatch.size(), inferenceBatchsize);
+
+        if (currentRequestBatch.size() >= inferenceBatchsize) {
+            logger.info("🚀 节点 {} 攒够 {} 个请求，第 {} 个批次开始处理", nodeIP, inferenceProcess, batchCounter);
+            // 清空状态，准备接收下一批请求
+            requestState.clear();
+
+            for (InferenceRequest req : currentRequestBatch) {
+                req.setProcessingTimestamp(System.currentTimeMillis());
+            }
+
+            // 进入批次推理服务
+            long batchStartTime = System.currentTimeMillis();
+            processBatch(out, currentRequestBatch);
+            long batchEndTime = System.currentTimeMillis();
+
+            logger.info("节点 {} 第 {} 个批次处理完成，耗时 {}ms", nodeIP, batchCounter - 1, batchEndTime-batchStartTime);
         }
     }
 
-    private void processBatch(Collector<InferenceResponse> out) throws Exception {
-        // 本次批处理的请求队列
-        List<InferenceRequest> requestBatch = new ArrayList<>();
-
-        // 从缓冲区取出targetBatchSize个请求
-        for (int i = 0; i < targetBatchSize; i++) {
-            InferenceRequest req = requestBuffer.poll();
-            if (req != null) {
-                // 更新请求的开始处理时间
-                req.setProcessingTimestamp(System.currentTimeMillis());
-                requestBatch.add(req);
-            }
-        }
-
+    private void processBatch(Collector<InferenceResponse> out, List<InferenceRequest> requestBatch) throws Exception {
         if (requestBatch.isEmpty()) {
             return;
         }
+        // 当不考虑超时时，批次触发时间即最后一个请求的处理时间
+        long batchTriggerTime = requestBatch.get(inferenceBatchsize - 1).getAcceptedTimestamp();
 
-        int batchSize = requestBatch.size();
-        // 更新当前的批次数
-        int currentBatchNum = ++batchCounter;
-        // 当不考虑超时机制时，批次内最后一个请求的到达时间(被接受时间)即为该批次的触发时间
-        long batchTriggerTime = requestBatch.get(targetBatchSize - 1).getAcceptedTimestamp();
-
-        // 构建用于传输的批次请求体
-        BatchRequestData batchRequest = new BatchRequestData();
-        batchRequest.requests = new ArrayList<>();
-
+        List<RequestData> batchReqData = new ArrayList<>();
         for (InferenceRequest req : requestBatch) {
             // 构造单条请求体
-            SingleRequestData singleReq = new SingleRequestData();
-            singleReq.user_message = req.getUserMessage();
-            singleReq.userId = req.getUserId();
-            singleReq.max_tokens = req.getMaxNewTokens();
-            singleReq.request_id = req.getRequestId();
-            batchRequest.requests.add(singleReq);
+            RequestData reaData = new RequestData(req.getRequestId(), req.getUserId(), req.getUserMessage(), req.getLlmModel().getModelName());
+            batchReqData.add(reaData);
         }
 
-        batchRequest.batch_size = batchSize;
-        batchRequest.batch_id = String.format("node-%s_batch_%d_%d", nodeIP, currentBatchNum, batchTriggerTime);
-
         // 将请求发送到 Python 推理进程
-        String requestJson = objectMapper.writeValueAsString(batchRequest);
+        String requestJson = objectMapper.writeValueAsString(batchReqData);
         processInput.write(requestJson + "\n");
         processInput.flush();
 
-        long inferenceStartTime = System.currentTimeMillis();
-
         // 从 Python 推理进程获取响应
-        String responseJson = processOutput.readLine();
-        if (responseJson == null) {
+        String batchResponseJson = processOutput.readLine();
+        if (batchResponseJson == null) {
             throw new RuntimeException("节点 " + nodeIP + " 无响应");
         }
 
         // 构造响应体，解析 Python 推理服务的响应内容
-        BatchResponseData batchResponse = objectMapper.readValue(responseJson, BatchResponseData.class);
-
-        if (!batchResponse.success) {
-            throw new RuntimeException("节点 " + nodeIP + " 处理失败: " + batchResponse.error);
+        String batchResponseString = processOutput.readLine();
+        if (batchResponseString == null) {
+            throw new RuntimeException("节点 " + nodeIP + " 无响应");
         }
 
-        long inferenceEndTime = System.currentTimeMillis();
-        long inferenceTime = inferenceEndTime - inferenceStartTime;
-
-        logger.info("📊 节点 {} 批次#{} 完成: 总推理时间={}ms",
-                nodeIP, currentBatchNum, inferenceTime);
+        List<responseData> batchRespData = objectMapper.readValue(batchResponseString, new TypeReference<>() {});
 
         // 从响应中获取数据
         for (int i = 0; i < requestBatch.size(); i++) {
-            InferenceRequest originalReq = requestBatch.get(i);
-            SingleResponseData singleResp = batchResponse.responses.get(i);
-            long requestArrivalTime = originalReq.getAcceptedTimestamp();
+            InferenceRequest originalRequest = requestBatch.get(i);
+            responseData responseData = batchRespData.get(i);
 
             InferenceResponse response = new InferenceResponse();
-            response.requestId = originalReq.requestId;
-            response.userId = originalReq.userId;
-            response.userMessage = originalReq.userMessage;
-            response.responseText = singleResp.response;
-            response.inferenceTimeMs = inferenceTime;
-            response.success = singleResp.success;
-            response.responseDescription = String.format("node-%s", nodeIP);
-            response.fromCache = false;
-            response.batchSize = batchSize;
-            response.timestamp = inferenceEndTime;
-            response.setRequestAcceptedTime(originalReq.getAcceptedTimestamp());
-
-            // 🔧 批次触发时间计算等待时间
-            // 等待时间 = 批次触发时间 - 请求到达时间
-            long waitTime = batchTriggerTime - requestArrivalTime;
-
-            response.waitTimeMs = waitTime;
-            response.batchProcessTimeMs = inferenceTime;
-            response.totalLatencyMs = waitTime + inferenceTime;
+            response.setRequestId(originalRequest.getRequestId());
+            response.setUserId(originalRequest.getUserId());
+            response.setUserMessage(originalRequest.getUserMessage());
+            response.setResponseText(responseData.getResponse());
+            response.setInferenceTimeMs(responseData.getInferenceTime());
+            response.setSuccess(responseData.isSuccess());
+            response.setNodeIP(nodeIP);
+            response.setFromCache(false);
+            response.setBatchSize(originalRequest.getBatchSize());
+            response.setRequestAcceptedTime(originalRequest.getAcceptedTimestamp());
+            response.setWaitTimeMs(batchTriggerTime - originalRequest.getAcceptedTimestamp());
+            response.setTotalLatencyMs(response.getWaitTimeMs() + response.getInferenceTimeMs());
 
             logger.info("请求 {} 处理完成，等待 {} 毫秒，推理 {} 毫秒，总耗时 {} 毫秒", response.requestId, response.waitTimeMs,
                     response.inferenceTimeMs, response.totalLatencyMs);
-
             // 输出响应
             out.collect(response);
         }
-
-        logger.info("✅ 节点 {} 批次#{} 输出{}个响应", nodeIP, currentBatchNum, batchSize);
     }
 
     @Override
@@ -275,36 +222,158 @@ public class ParallelBatchProcessor extends ProcessFunction<InferenceRequest, In
         super.close();
     }
 
-    // 数据结构类
-    private static class BatchRequestData {
-        public List<SingleRequestData> requests;
-        public int batch_size;
-        public String batch_id;
+    private static class RequestData {
+        String requestId;
+        String userId;
+        String userMessage;
+        String llmModelName;
+        int batchsize;
+        long predictedGeneratedTokenNum;
+        double predictedInferenceTime;
+        boolean success;
+
+        RequestData() {};
+
+        RequestData(String requestId, String userId, String userMessage, String llmModelName) {
+            this.requestId = requestId;
+            this.userId = userId;
+            this.userMessage = userMessage;
+            this.llmModelName = llmModelName;
+            this.predictedGeneratedTokenNum = 0;
+            this.predictedInferenceTime = 0.0;
+            this.success = false;
+        }
+
+
+        RequestData(String requestId, String userId, String userMessage, String llmModelName, long predictedGeneratedTokenNum, double predictedInferenceTime, boolean success) {
+            this.requestId = requestId;
+            this.userId = userId;
+            this.userMessage = userMessage;
+            this.llmModelName = llmModelName;
+            this.predictedGeneratedTokenNum = predictedGeneratedTokenNum;
+            this.predictedInferenceTime = predictedInferenceTime;
+            this.success = success;
+        }
+
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+
+        public String getRequestId() {
+            return requestId;
+        }
+
+        public void setRequestId(String requestId) {
+            this.requestId = requestId;
+        }
+
+        public String getUserId() {
+            return userId;
+        }
+
+        public void setUserId(String userId) {
+            this.userId = userId;
+        }
+
+        public String getUserMessage() {
+            return userMessage;
+        }
+
+        public void setUserMessage(String userMessage) {
+            this.userMessage = userMessage;
+        }
+
+        public long getPredictedGeneratedTokenNum() {
+            return predictedGeneratedTokenNum;
+        }
+
+        public void setPredictedGeneratedTokenNum(long predictedGeneratedTokenNum) {
+            this.predictedGeneratedTokenNum = predictedGeneratedTokenNum;
+        }
+
+        public double getPredictedInferenceTime() {
+            return predictedInferenceTime;
+        }
+
+        public void setPredictedInferenceTime(double predictedInferenceTime) {
+            this.predictedInferenceTime = predictedInferenceTime;
+        }
+
+        public String getLlmModelName() {
+            return llmModelName;
+        }
+
+        public void setLlmModelName(String llmModelName) {
+            this.llmModelName = llmModelName;
+        }
+
+        public int getBatchsize() {
+            return batchsize;
+        }
+
+        public void setBatchsize(int batchsize) {
+            this.batchsize = batchsize;
+        }
     }
 
-    private static class SingleRequestData {
-        public String userId;
-        public String user_message;
-        public int max_tokens;
-        public String request_id;
-    }
+    private static class responseData {
+        String requestID;
+        String response;
+        boolean success;
+        long inferenceTime;
+        int generatedTokenNum;
 
-    private static class BatchResponseData {
-        public List<SingleResponseData> responses;
-        public int batch_size;
-        public String batch_id;
-        public long total_inference_time_ms;
-        public boolean success;
-        public String error;
-        public long timestamp;
-    }
+        public responseData(String response, boolean success, long inferenceTime, int generatedTokenNum, String requestID) {
+            this.response = response;
+            this.success = success;
+            this.inferenceTime = inferenceTime;
+            this.generatedTokenNum = generatedTokenNum;
+            this.requestID = requestID;
+        }
 
-    private static class SingleResponseData {
-        public String response;
-        public double inference_time_ms;
-        public String request_id;
-        public boolean success;
-        public long timestamp;
+        public boolean isSuccess() {
+            return success;
+        }
+
+        public void setSuccess(boolean success) {
+            this.success = success;
+        }
+
+        public String getResponse() {
+            return response;
+        }
+
+        public void setResponse(String response) {
+            this.response = response;
+        }
+
+        public String getRequestID() {
+            return requestID;
+        }
+
+        public void setRequestID(String requestID) {
+            this.requestID = requestID;
+        }
+
+        public int getGeneratedTokenNum() {
+            return generatedTokenNum;
+        }
+
+        public void setGeneratedTokenNum(int generatedTokenNum) {
+            this.generatedTokenNum = generatedTokenNum;
+        }
+
+        public long getInferenceTime() {
+            return inferenceTime;
+        }
+
+        public void setInferenceTime(long inferenceTime) {
+            this.inferenceTime = inferenceTime;
+        }
     }
 
     private static class ShutdownCommand {

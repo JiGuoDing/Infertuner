@@ -87,7 +87,11 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
         pythonOutput = new BufferedReader(new InputStreamReader(predictingInferenceTimeProcess.getInputStream()));
 
         // 启动 Python 预测推理时间进程
+        long predictingInferenceTimeServiceStartTime = System.currentTimeMillis();
         startPredictingInferenceTimeService();
+        long predictingInferenceTimeServiceEndTime = System.currentTimeMillis();
+        logger.info("节点 {} 推理时间预测服务启动耗时 {}ms", nodeIP,
+                (predictingInferenceTimeServiceEndTime - predictingInferenceTimeServiceStartTime));
 
         // 初始化 JSON 处理器
         objectMapper = new ObjectMapper();
@@ -106,14 +110,17 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
         // 如果攒够了 batchsize 个请求，进行批处理预测
         if (currentRequestBatch.size() >= predictingBatchsize) {
             logger.info("节点 {} 开始第 {} 次批处理", nodeIP, batchCounter++);
+
+            // 清空状态，准备接收下一批请求
+            requestState.clear();
             for (InferenceRequest req : currentRequestBatch) {
                 req.setProcessingTimestamp(System.currentTimeMillis());
             }
+
             long batchStartTime = System.currentTimeMillis();
             processBatch(currentRequestBatch, out);
             long batchEndTime = System.currentTimeMillis();
-            logger.info("节点 {} 第 {} 次批处理完成，批处理大小 {}, 批处理耗时 {}ms", nodeIP, batchCounter - 1,
-                    currentRequestBatch.size(), (batchEndTime - batchStartTime));
+            logger.info("节点 {} 第 {} 次批预测完成, 批预测耗时 {}ms", nodeIP, batchCounter - 1, (batchEndTime - batchStartTime));
         }
     }
 
@@ -150,7 +157,7 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
             throws IOException {
         List<RequestData> batchReqData = new ArrayList<>();
         for (InferenceRequest req : requestBatch) {
-            RequestData reqData = new RequestData(req.getRequestId(), req.getUserId(), req.getUserMessage(), req.getLlmModel().getModelName());
+            RequestData reqData = new RequestData(req.getRequestId(), req.getUserId(), req.getUserMessage(), req.getLlmModel().getModelName(), predictingBatchsize);
             batchReqData.add(reqData);
         }
 
@@ -166,8 +173,7 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
         }
 
         List<RequestData> batchPredictedRequestData = objectMapper.readValue(batchPredictedRequestString,
-                new TypeReference<>() {
-                });
+                new TypeReference<>() {});
 
         // 提取响应信息，构造完整的处理后的推理请求
         for (int i = 0; i < batchPredictedRequestData.size(); i++) {
@@ -185,19 +191,21 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
         String userId;
         String userMessage;
         String llmModelName;
+        int batchsize;
         long predictedGeneratedTokenNum;
         double predictedInferenceTime;
         boolean success;
         
         RequestData() {};
 
-        RequestData(String requestId, String userId, String userMessage, String llmModelName) {
+        RequestData(String requestId, String userId, String userMessage, String llmModelName, int batchsize) {
             this.requestId = requestId;
             this.userId = userId;
             this.userMessage = userMessage;
             this.llmModelName = llmModelName;
             this.predictedGeneratedTokenNum = 0;
             this.predictedInferenceTime = 0.0;
+            this.batchsize = batchsize;
             this.success = false;
         }
 
@@ -267,6 +275,13 @@ public class PredictingInferenceTimeProcessor extends RichFlatMapFunction<Infere
         public void setLlmModelName(String llmModelName) {
             this.llmModelName = llmModelName;
         }
-    }
 
+        public int getBatchsize() {
+            return batchsize;
+        }
+
+        public void setBatchsize(int batchsize) {
+            this.batchsize = batchsize;
+        }
+    }
 }

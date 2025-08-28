@@ -8,14 +8,17 @@ public class InferenceResponse {
     public String userId;
     public String userMessage;
     public String responseText;
-    public double inferenceTimeMs;
-    // 对该请求的响应描述（如处理节点、错误信息等）
-    public String responseDescription;
+    public long inferenceTimeMs;
+    // 生成该响应的节点 IP
+    public String nodeIP;
     public boolean success;
     public boolean fromCache; // 是否来自缓存
     public int batchSize;
     public long timestamp;
     public long requestAcceptedTime;
+    // 批处理相关字段 - 新增
+    public long waitTimeMs = 0; // 在缓冲区等待时间
+    public long totalLatencyMs = 0; // 总延迟 = 等待时间 + 处理时间
 
     public String getRequestId() {
         return requestId;
@@ -41,11 +44,11 @@ public class InferenceResponse {
         this.userMessage = userMessage;
     }
 
-    public double getInferenceTimeMs() {
+    public long getInferenceTimeMs() {
         return inferenceTimeMs;
     }
 
-    public void setInferenceTimeMs(double inferenceTimeMs) {
+    public void setInferenceTimeMs(long inferenceTimeMs) {
         this.inferenceTimeMs = inferenceTimeMs;
     }
 
@@ -57,12 +60,12 @@ public class InferenceResponse {
         this.responseText = aiResponse;
     }
 
-    public String getResponseDescription() {
-        return responseDescription;
+    public String getNodeIP() {
+        return nodeIP;
     }
 
-    public void setResponseDescription(String responseDescription) {
-        this.responseDescription = responseDescription;
+    public void setNodeIP(String nodeIP) {
+        this.nodeIP = nodeIP;
     }
 
     public boolean isSuccess() {
@@ -113,14 +116,6 @@ public class InferenceResponse {
         this.waitTimeMs = waitTimeMs;
     }
 
-    public long getBatchProcessTimeMs() {
-        return batchProcessTimeMs;
-    }
-
-    public void setBatchProcessTimeMs(long batchProcessTimeMs) {
-        this.batchProcessTimeMs = batchProcessTimeMs;
-    }
-
     public long getTotalLatencyMs() {
         return totalLatencyMs;
     }
@@ -129,10 +124,6 @@ public class InferenceResponse {
         this.totalLatencyMs = totalLatencyMs;
     }
 
-    // 批处理相关字段 - 新增
-    public long waitTimeMs = 0; // 在缓冲区等待时间
-    public long batchProcessTimeMs = 0; // 批处理推理时间
-    public long totalLatencyMs = 0; // 总延迟 = 等待时间 + 处理时间
 
     public InferenceResponse() {
     }
@@ -141,8 +132,8 @@ public class InferenceResponse {
     public String toString() {
         // 如果有批处理信息，显示详细延迟信息
         if (batchSize > 1 || waitTimeMs > 0) {
-            return String.format("InferenceResponse{id=%s, success=%s, batch=%d, wait=%dms, process=%dms, total=%dms}",
-                    requestId, success, batchSize, waitTimeMs, batchProcessTimeMs, totalLatencyMs);
+            return String.format("InferenceResponse{id=%s, success=%s, batch=%d, wait=%dms, total=%dms}",
+                    requestId, success, batchSize, waitTimeMs, totalLatencyMs);
         } else {
             // 保持原有格式用于兼容性
             return String.format("InferenceResponse{id=%s, success=%s, time=%.2fms, cache=%s, response='%s'}",

@@ -58,7 +58,7 @@ public class InferTunerTestingJob {
                                 .name("Cache-aware Requests Source");
 
                 /*
-                 * TODO 添加请求预处理算子(预测请求的推理时间)
+                 * 请求预处理算子(预测请求的推理时间)
                  */
                 DataStream<InferenceRequest> predicted_requests = requests
                                 .flatMap(new PredictingInferenceTimeProcessor())

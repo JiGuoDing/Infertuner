@@ -28,7 +28,7 @@ public class GPUMonitorSink implements SinkFunction<InferenceResponse> {
     public void invoke(InferenceResponse response, Context context) throws Exception {
         int count = totalCount.incrementAndGet();
 
-        String NodeIP = extractNodeIP(response.responseDescription);
+        String NodeIP = extractNodeIP(response.nodeIP);
 
         if (response.success) {
             successCount.incrementAndGet();

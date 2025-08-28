@@ -284,7 +284,7 @@ public class ProcessFunctionBatchProcessor extends ProcessFunction<InferenceRequ
             response.responseText = singleResp.response;
             response.inferenceTimeMs = avgProcessTimePerRequest;
             response.success = singleResp.success;
-            response.responseDescription = String.format("Node-%s", nodeIP);
+            response.nodeIP = String.format("Node-%s", nodeIP);
             response.fromCache = false;
             response.batchSize = batchSize;
             response.timestamp = batchEndTime;
